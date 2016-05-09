@@ -77,7 +77,7 @@ Have a look at the [5 Min QuickStart Guide](https://angular.io/docs/ts/latest/qu
             "declaration": false,
             "emitDecoratorMetadata": true,
             "experimentalDecorators": true,
-            "module": "system",
+            "module": "commonjs",
             "moduleResolution": "node",
             "noEmitOnError": true,
             "noImplicitAny": false,
@@ -163,3 +163,131 @@ Have a look at the [5 Min QuickStart Guide](https://angular.io/docs/ts/latest/qu
 
 > Task Runner Seems to be a little buggy at the moment so you might need to run this manually
 from Task Runner Explorer or in the command prompt using *ng build*
+
+## Tour of Heroes
+
+### Step 1 Hero Model
+
+1. Create a *Hero* class in *app/shared* using the cli
+
+    ```powershell
+    > ng generate class Shared/Hero Model
+    ```
+
+1. Give the Hero class id and name properties. Copy/paste the following:
+
+    ```typescript
+    export class Hero {
+        id: number;
+        name: string;
+    }
+    ```
+### Step 2 App Component
+
+1. Copy/paste the following in ***toh.component.ts***
+
+    ```typescript
+    import { Component } from '@angular/core';
+    import { Hero } from './shared/hero.model';
+
+    @Component({
+    moduleId: module.id,
+    selector: 'toh-app',
+    templateUrl: 'toh.component.html',
+    styleUrls: ['toh.component.css']
+    })
+    export class TohAppComponent {
+        title = 'Tour of Heroes';
+        selectedHero: Hero;
+        public heroes = HEROES;
+
+        onSelect(hero: Hero) { this.selectedHero = hero; }
+    }
+
+    var HEROES: Hero[] = [
+    { "id": 11, "name": "Mr. Nice" },
+    { "id": 12, "name": "Narco" },
+    { "id": 13, "name": "Bombasto" },
+    { "id": 14, "name": "Celeritas" },
+    { "id": 15, "name": "Magneta" },
+    { "id": 16, "name": "RubberMan" },
+    { "id": 17, "name": "Dynama" },
+    { "id": 18, "name": "Dr IQ" },
+    { "id": 19, "name": "Magma" },
+    { "id": 20, "name": "Tornado" }
+    ];
+    ```
+
+1. Update template. Copy/paste the following into ***toh.component.html***:
+
+    ```html
+    <h1>{{title}}</h1>
+    <h2>My Heroes</h2>
+    <ul class="heroes">
+        <li *ngFor="let hero of heroes"
+        [class.selected]="hero === selectedHero"
+        (click)="onSelect(hero)">
+        <span class="badge">{{hero.id}}</span> {{hero.name}}
+        </li>
+    </ul>
+    <div *ngIf="selectedHero">
+        <h2>{{selectedHero.name}} details!</h2>
+        <div><label>id: </label>{{selectedHero.id}}</div>
+        <div>
+        <label>name: </label>
+        <input [(ngModel)]="selectedHero.name" placeholder="name"/>
+        </div>
+    </div>
+    ```
+
+1. Update Styles. Copy/paste the following into ***toh.component.css***:
+
+    ```css
+        .selected {
+        background-color: #CFD8DC !important;
+        color: white;
+    }
+    .heroes {
+        margin: 0 0 2em 0;
+        list-style-type: none;
+        padding: 0;
+        width: 15em;
+    }
+    .heroes li {
+        cursor: pointer;
+        position: relative;
+        left: 0;
+        background-color: #EEE;
+        margin: .5em;
+        padding: .3em 0;
+        height: 1.6em;
+        border-radius: 4px;
+    }
+    .heroes li.selected:hover {
+        background-color: #BBD8DC !important;
+        color: white;
+    }
+    .heroes li:hover {
+        color: #607D8B;
+        background-color: #DDD;
+        left: .1em;
+    }
+    .heroes .text {
+        position: relative;
+        top: -3px;
+    }
+    .heroes .badge {
+        display: inline-block;
+        font-size: small;
+        color: white;
+        padding: 0.8em 0.7em 0 0.7em;
+        background-color: #607D8B;
+        line-height: 1em;
+        position: relative;
+        left: -1px;
+        top: -4px;
+        height: 1.8em;
+        margin-right: .8em;
+        border-radius: 4px 0 0 4px;
+    }
+    ```
