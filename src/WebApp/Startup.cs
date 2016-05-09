@@ -21,11 +21,8 @@ namespace WebApp
         public void Configure(IApplicationBuilder app)
         {
             app.UseIISPlatformHandler();
-
-            app.Run(async (context) =>
-            {
-                await context.Response.WriteAsync("Hello World!");
-            });
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
         }
 
         // Entry point for the application.

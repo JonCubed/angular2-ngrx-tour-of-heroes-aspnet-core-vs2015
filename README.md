@@ -30,7 +30,7 @@ Follow the instructions in the follow blog - [Customize external web tools in vi
     > dnvm upgrade latest -r clr -arch x64
     ```
 
-## 5 Min QuickStart
+## Getting Started
 
 Have a look at the [5 Min QuickStart Guide](https://angular.io/docs/ts/latest/quickstart.html) before continuing to have a better understanding of we are doing here.
 
@@ -65,3 +65,101 @@ Have a look at the [5 Min QuickStart Guide](https://angular.io/docs/ts/latest/qu
     }
     ```
     > In future versions this will probably be move into angular-cli.json
+
+### Step 3. Configure Typescript
+
+1. Copy/paste the following into *tsconfig.json* in *clientSrc/*
+
+    ```json
+    {
+        "compileOnSave": true,
+        "compilerOptions": {
+            "declaration": false,
+            "emitDecoratorMetadata": true,
+            "experimentalDecorators": true,
+            "module": "system",
+            "moduleResolution": "node",
+            "noEmitOnError": true,
+            "noImplicitAny": false,
+            "outDir": "../wwwroot/",
+            "rootDir": ".",
+            "sourceMap": false,
+            "target": "es5",
+            "inlineSources": false
+        },
+        "files": [
+            "main.ts",
+            "typings.d.ts"
+        ]
+    }
+    ```
+
+### Step 4. Configure ASP.NET Core
+
+#### Add support in ASP.NET 5 for static files
+
+1. Update ***project.json*** in the root folder, copy/paste the following:
+
+        ```json
+        {
+            "version": "1.0.0-*",
+            "compilationOptions": {
+                "emitEntryPoint": true
+            },
+
+            "dependencies": {
+                "Microsoft.AspNet.IISPlatformHandler": "1.0.0-rc1-final",
+                "Microsoft.AspNet.Server.Kestrel": "1.0.0-rc1-final",
+                "Microsoft.AspNet.StaticFiles": "1.0.0-rc1-final"
+            },
+
+            "commands": {
+                "web": "Microsoft.AspNet.Server.Kestrel"
+            },
+
+            "scripts": { "postbuild": [ "powershell -Command \"$env:project:Directory=Get-Location;Start-Process powershell -Verb runAs -ArgumentList \\\"-Command `\\\"Set-Location $env:project:Directory;ng build`\\\"\\\" " ] },
+
+            "frameworks": {
+                "dnx46": { },
+                "dnxcore50": { }
+            },
+
+            "exclude": [
+                "wwwroot",
+                "node_modules",
+                "tmp"
+            ],
+
+            "publishExclude": [
+                "**.user",
+                "**.vspscc"
+            ],
+
+            "contentExclude": [
+                "tmp"
+            ]
+        }
+        ```
+    > Note: We also added a post build scipt for running Angular Cli build command, which we will integrate soon 
+
+1. Update ***Configure()*** in *Startup.cs* in the root folder
+
+        ```csharp
+        public void Configure(IApplicationBuilder app)
+        {
+            app.UseIISPlatformHandler();
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
+        }
+        ```
+
+#### Integrate Angular Cli with MSBuild
+
+1. Open the ***Task Runner Explorer***, you should see the following:
+
+    ![Task Runner Explorer](./assets/task-runner-explorer.png)
+
+1. Right Click ***ng build*** and bind to ***After Build***
+
+> Task Runner Seems to be a little buggy at the moment so you might need to run this manually
+from Task Runner Explorer or in the command prompt using *ng build*

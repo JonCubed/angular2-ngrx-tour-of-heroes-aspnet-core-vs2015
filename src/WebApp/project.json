@@ -1,29 +1,38 @@
 ﻿{
-  "version": "1.0.0-*",
-  "compilationOptions": {
-    "emitEntryPoint": true
-  },
+    "version": "1.0.0-*",
+    "compilationOptions": {
+        "emitEntryPoint": true
+    },
 
-  "dependencies": {
-    "Microsoft.AspNet.IISPlatformHandler": "1.0.0-rc1-final",
-    "Microsoft.AspNet.Server.Kestrel": "1.0.0-rc1-final"
-  },
+    "dependencies": {
+        "Microsoft.AspNet.IISPlatformHandler": "1.0.0-rc1-final",
+        "Microsoft.AspNet.Server.Kestrel": "1.0.0-rc1-final",
+        "Microsoft.AspNet.StaticFiles": "1.0.0-rc1-final"
+    },
 
-  "commands": {
-    "web": "Microsoft.AspNet.Server.Kestrel"
-  },
+    "commands": {
+        "web": "Microsoft.AspNet.Server.Kestrel"
+    },
 
-  "frameworks": {
-    "dnx451": { },
-    "dnxcore50": { }
-  },
+    "scripts": { "postbuild": [ "powershell -Command \"$env:project:Directory=Get-Location;Start-Process powershell -Verb runAs -ArgumentList \\\"-Command `\\\"Set-Location $env:project:Directory;ng build`\\\"\\\" " ] },
 
-  "exclude": [
-    "wwwroot",
-    "node_modules"
-  ],
-  "publishExclude": [
-    "**.user",
-    "**.vspscc"
-  ]
+    "frameworks": {
+        "dnx46": { },
+        "dnxcore50": { }
+    },
+
+    "exclude": [
+        "wwwroot",
+        "node_modules",
+        "tmp"
+    ],
+
+    "publishExclude": [
+        "**.user",
+        "**.vspscc"
+    ],
+
+    "contentExclude": [
+        "tmp"
+    ]
 }

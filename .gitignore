@@ -234,3 +234,12 @@ _Pvt_Extensions
 
 # FAKE - F# Make
 .fake/
+src/WebApp/wwwroot/app/
+src/WebApp/wwwroot/vendor/
+src/WebApp/wwwroot/favicon.ico
+src/WebApp/wwwroot/icon.png
+src/WebApp/wwwroot/index.html
+src/WebApp/wwwroot/main.js
+src/WebApp/wwwroot/manifest.webapp
+src/WebApp/wwwroot/system-config.js
+src/WebApp/wwwroot/tsconfig.json
