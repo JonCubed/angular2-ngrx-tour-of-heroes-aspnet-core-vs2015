@@ -51,7 +51,7 @@ Have a look at the [5 Min QuickStart Guide](https://angular.io/docs/ts/latest/qu
 1. Initalise Angular by running the following angular-cli command
 
     ```cmd
-    > ng init toh --prefix toh --source-dir clientSrc
+    > ng init --name toh --prefix toh --source-dir clientSrc
     ```
     > Here we are calling our angular app toh (tour of heroes). We are also saying we want to default our
     > components with toh and that the app source folder should be clientSrc instead of src
