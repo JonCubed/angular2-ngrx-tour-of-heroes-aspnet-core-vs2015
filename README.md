@@ -1,7 +1,7 @@
 # Angular 2 (rc1) Tour of Heroes using ngrx, Angular Cli and ASP.NET 5 in Visual Studio 2015
 
 This repository aims to implement the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/ts/latest/tutorial/)
-using the [Angular Cli](https://github.com/angular/angular-cli), [ngrx/store](https://github.com/ngrx/store), 
+using the [Angular Cli](https://github.com/angular/angular-cli), [ngrx/store](https://github.com/ngrx/store),
 [ngrx/router](https://github.com/ngrx/router) and [ASP.NET 5](https://docs.asp.net/en/latest/) in Visual Studio 2015.
 
 ## Perequisite
@@ -32,8 +32,6 @@ Follow the instructions in the follow blog - [Customize external web tools in vi
 
 ## Getting Started
 
-Have a look at the [5 Min QuickStart Guide](https://angular.io/docs/ts/latest/quickstart.html) before continuing to have a better understanding of we are doing here.
-
 ### Step 1. Create an empty ASP.NET Core project
 
 1. Open Visual Studio 2015 and click *New Project...* on Start Page.
@@ -46,7 +44,7 @@ Have a look at the [5 Min QuickStart Guide](https://angular.io/docs/ts/latest/qu
 
 ### Step 2. Setup Angular 2 in the project
 
-1. Open an elevated command prompt at the project folder, i.e. {solution}/src/{project}
+1. Open an elevated command prompt at the project folder, i.e. *{solution}/src/{project}*
 
 1. Initalise Angular by running the following angular-cli command
 
@@ -56,7 +54,7 @@ Have a look at the [5 Min QuickStart Guide](https://angular.io/docs/ts/latest/qu
     > Here we are calling our angular app toh (tour of heroes). We are also saying we want to default our
     > components with toh and that the app source folder should be clientSrc instead of src
 
-1. ASP.NET Core expects our static files to be placed in ***wwwroot/*** however by default the Angulare Cli will output to *dist/*.
+1. ASP.NET Core expects our static files to be placed in ***wwwroot/*** however by default the angular cli will output to *dist/*.
   To fix this add a new ***JSON File*** to the project's root folder called ***.ember-cli*** and copy/paste the following:
 
     ```json
@@ -68,7 +66,7 @@ Have a look at the [5 Min QuickStart Guide](https://angular.io/docs/ts/latest/qu
 
 ### Step 3. Configure Typescript
 
-1. Copy/paste the following into *tsconfig.json* in *clientSrc/*
+1. Copy/paste the following into ***tsconfig.json*** in *clientSrc/*
 
     ```json
     {
@@ -100,47 +98,47 @@ Have a look at the [5 Min QuickStart Guide](https://angular.io/docs/ts/latest/qu
 
 1. Update ***project.json*** in the root folder, copy/paste the following:
 
-        ```json
-        {
-            "version": "1.0.0-*",
-            "compilationOptions": {
-                "emitEntryPoint": true
-            },
+    ```json
+    {
+        "version": "1.0.0-*",
+        "compilationOptions": {
+            "emitEntryPoint": true
+        },
 
-            "dependencies": {
-                "Microsoft.AspNet.IISPlatformHandler": "1.0.0-rc1-final",
-                "Microsoft.AspNet.Server.Kestrel": "1.0.0-rc1-final",
-                "Microsoft.AspNet.StaticFiles": "1.0.0-rc1-final"
-            },
+        "dependencies": {
+            "Microsoft.AspNet.IISPlatformHandler": "1.0.0-rc1-final",
+            "Microsoft.AspNet.Server.Kestrel": "1.0.0-rc1-final",
+            "Microsoft.AspNet.StaticFiles": "1.0.0-rc1-final"
+        },
 
-            "commands": {
-                "web": "Microsoft.AspNet.Server.Kestrel"
-            },
+        "commands": {
+            "web": "Microsoft.AspNet.Server.Kestrel"
+        },
 
-            "scripts": { "postbuild": [ "powershell -Command \"$env:project:Directory=Get-Location;Start-Process powershell -Verb runAs -ArgumentList \\\"-Command `\\\"Set-Location $env:project:Directory;ng build`\\\"\\\" " ] },
+        "scripts": { "postbuild": [ "powershell -Command \"$env:project:Directory=Get-Location;Start-Process powershell -Verb runAs -ArgumentList \\\"-Command `\\\"Set-Location $env:project:Directory;ng build`\\\"\\\" " ] },
 
-            "frameworks": {
-                "dnx46": { },
-                "dnxcore50": { }
-            },
+        "frameworks": {
+            "dnx46": { },
+            "dnxcore50": { }
+        },
 
-            "exclude": [
-                "wwwroot",
-                "node_modules",
-                "tmp"
-            ],
+        "exclude": [
+            "wwwroot",
+            "node_modules",
+            "tmp"
+        ],
 
-            "publishExclude": [
-                "**.user",
-                "**.vspscc"
-            ],
+        "publishExclude": [
+            "**.user",
+            "**.vspscc"
+        ],
 
-            "contentExclude": [
-                "tmp"
-            ]
-        }
-        ```
-    > Note: We also added a post build scipt for running Angular Cli build command, which we will integrate soon 
+        "contentExclude": [
+            "tmp"
+        ]
+    }
+    ```
+    > Note: We also added a post build scipt for running angular cli *build* command, which we will integrate soon 
 
 1. Update ***Configure()*** in *Startup.cs* in the root folder
 
@@ -166,15 +164,17 @@ from Task Runner Explorer or in the command prompt using *ng build*
 
 ## Tour of Heroes
 
+Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/ts/latest/tutorial/) before continuing to have a better understanding of we are doing here.
+
 ### Step 1 Hero Model
 
-1. Create a *Hero* class in *app/shared* using the cli
+1. Create a ***Hero*** class in *app/shared* using the cli
 
     ```powershell
     > ng generate class Shared/Hero Model
     ```
 
-1. Give the Hero class id and name properties. Copy/paste the following:
+1. Give the Hero class ***id*** and ***name*** properties. Copy/paste the following:
 
     ```typescript
     export class Hero {
@@ -218,7 +218,7 @@ from Task Runner Explorer or in the command prompt using *ng build*
     ];
     ```
 
-1. Update template. Copy/paste the following into ***toh.component.html***:
+1. Update toh component template. Copy/paste the following into ***toh.component.html***:
 
     ```html
     <h1>{{title}}</h1>
@@ -240,19 +240,21 @@ from Task Runner Explorer or in the command prompt using *ng build*
     </div>
     ```
 
-1. Update Styles. Copy/paste the following into ***toh.component.css***:
+1. Update toh component styles. Copy/paste the following into ***toh.component.css***:
 
     ```css
-        .selected {
+    .selected {
         background-color: #CFD8DC !important;
         color: white;
     }
+    
     .heroes {
         margin: 0 0 2em 0;
         list-style-type: none;
         padding: 0;
         width: 15em;
     }
+
     .heroes li {
         cursor: pointer;
         position: relative;
@@ -263,19 +265,23 @@ from Task Runner Explorer or in the command prompt using *ng build*
         height: 1.6em;
         border-radius: 4px;
     }
+
     .heroes li.selected:hover {
         background-color: #BBD8DC !important;
         color: white;
     }
+
     .heroes li:hover {
         color: #607D8B;
         background-color: #DDD;
         left: .1em;
     }
+
     .heroes .text {
         position: relative;
         top: -3px;
     }
+
     .heroes .badge {
         display: inline-block;
         font-size: small;
