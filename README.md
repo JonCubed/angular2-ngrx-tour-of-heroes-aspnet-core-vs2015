@@ -467,11 +467,15 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
             </md-card-header>
             <md-card-content>
                 <md-list class="heroes">
-                    <md-list-item *ngFor="let hero of heroes" class="hero"
+                    <div *ngFor="let hero of heroes" class="hero"
                         [class.selected]="hero === selectedHero"
                         (click)="onSelect(hero)">
-                        <span class="badge">{{hero.id}}</span> {{hero.name}}
+                    <md-list-item>
+                        <p md-line>
+                            <span class="badge">{{hero.id}}</span> {{hero.name}}
+                        </p>
                     </md-list-item>
+                    </div>
                 </md-list>
             </md-card-content>
         </md-card>
@@ -484,9 +488,23 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 1. Update toh component styles. Copy/paste the following into ***toh.component.css*** in *app/*:
 
     ```css
-    .selected {
+    .hero:hover {
+        color: #212121;
+        background-color: #B3E5FC;
+        left: .1em;
+    }
+
+    .hero.selected {
+        color: #212121;
         background-color: #536DFE;
-        color: #536DFE;
+    }
+
+    .hero.selected:hover {
+        color: #212121;
+    }
+
+    .hero.selected .badge {
+        background-color: #03A9F4;
     }
 
     md-toolbar {
@@ -513,16 +531,11 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
         font-size: 2rem;
     }
 
-    .heroes md-list-item:hover {
-        color: #727272;
-        background-color: #000;
-        left: .1em;
-    }
-
     .heroes .text {
         position: relative;
         top: -4px;
     }
+
     .heroes .badge {
         display: inline-block;
         font-size: small;

@@ -8,11 +8,16 @@
         </md-card-header>
         <md-card-content>
             <md-list class="heroes">
-                <md-list-item *ngFor="let hero of heroes" class="hero"
+                <div *ngFor="let hero of heroes" class="hero"
                     [class.selected]="hero === selectedHero"
                     (click)="onSelect(hero)">
-                    <span class="badge">{{hero.id}}</span> {{hero.name}}
+                <md-list-item>
+                    
+                    <p md-line>
+                        <span class="badge">{{hero.id}}</span> {{hero.name}}
+                    </p>
                 </md-list-item>
+                </div>
             </md-list>
         </md-card-content>
     </md-card>
