@@ -162,6 +162,110 @@ Follow the instructions in the follow blog - [Customize external web tools in vi
 > Task Runner Seems to be a little buggy at the moment so you might need to run this manually
 from Task Runner Explorer or in the command prompt using *ng build*
 
+## Install Packages
+
+### Angular 2 Material
+
+1. Install the following packages
+
+    ```cmd
+    npm install @angular2-material/core --save
+    npm install @angular2-material/list --save
+    npm install @angular2-material/toolbar --save
+    npm install @angular2-material/input --save
+    npm install @angular2-material/card --save
+    ```
+
+1. Include material2 in ***angular-cli-build.js***. Copy/paste the following:
+
+    ```js
+    /* global require, module */
+
+    var Angular2App = require('angular-cli/lib/broccoli/angular2-app');
+
+    module.exports = function(defaults) {
+        return new Angular2App(defaults, {
+            vendorNpmFiles: [
+            'systemjs/dist/system-polyfills.js',
+            'systemjs/dist/system.src.js',
+            'zone.js/dist/*.js',
+            'es6-shim/es6-shim.js',
+            'reflect-metadata/*.js',
+            'rxjs/**/*.js',
+            '@angular/**/*.js',
+            '@angular2-material/**/*.js'
+            ]
+        });
+    };
+    ```
+
+1. Set up SystemJS configuration ***system-config.ts*** in *clientSrc/*. Copy/paste the following:
+
+    ```js
+    /***********************************************************************************************
+    ** User Configuration.
+    **********************************************************************************************/
+    /** Map relative paths to URLs. */
+    var map = {
+        '@angular2-material': 'vendor/@angular2-material'
+    };
+    var materialPackages = [
+        'core',
+        'toolbar',
+        'icon',
+        'list',
+        'card',
+        'input'
+    ];
+    /** User packages configuration. */
+    var packages = createCustomConfig(materialPackages);
+    
+    function createCustomConfig(packages) {
+        return packages.reduce(function (packageConfig, packageName) {
+            packageConfig[("@angular2-material/" + packageName)] = {
+                format: 'cjs',
+                defaultExtension: 'js',
+                main: packageName
+            };
+            return packageConfig;
+        }, {});
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    /***********************************************************************************************
+    ** Everything underneath this line is managed by the CLI.
+    **********************************************************************************************/
+    var barrels = [
+        // Angular specific barrels.
+        '@angular/core',
+        '@angular/common',
+        '@angular/compiler',
+        '@angular/http',
+        '@angular/router',
+        '@angular/platform-browser',
+        '@angular/platform-browser-dynamic',
+        // Thirdparty barrels.
+        'rxjs',
+        // App specific barrels.
+        'app',
+        'app/shared'
+    ];
+    var cliSystemConfigPackages = {};
+    barrels.forEach(function (barrelName) {
+        cliSystemConfigPackages[barrelName] = { main: 'index' };
+    });
+    // Apply the CLI SystemJS configuration.
+    System.config({
+        map: {
+            '@angular': 'vendor/@angular',
+            'rxjs': 'vendor/rxjs',
+            'main': 'main.js'
+        },
+        packages: cliSystemConfigPackages
+    });
+    // Apply the user's configuration.
+    System.config({ map: map, packages: packages });
+    ```
+
 ## Tour of Heroes
 
 Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/ts/latest/tutorial/) before continuing to have a better understanding of we are doing here.
@@ -253,22 +357,25 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 
     ```typescript
     import { Component, OnInit, Input } from '@angular/core';
+    import { MD_INPUT_DIRECTIVES } from '@angular2-material/input';
+
     import { Hero } from '../shared/index'
 
     @Component({
-        moduleId: module.id,
-        selector: 'toh-hero-detail',
-        templateUrl: 'hero-detail.component.html',
-        styleUrls: ['hero-detail.component.css']
+    moduleId: module.id,
+    selector: 'toh-hero-detail',
+    templateUrl: 'hero-detail.component.html',
+    styleUrls: ['hero-detail.component.css'],
+    directives: [ MD_INPUT_DIRECTIVES ]
     })
     export class HeroDetailComponent implements OnInit {
 
-        @Input() hero: Hero;
+    @Input() hero: Hero;
 
-        constructor() {}
+    constructor() {}
 
-        ngOnInit() {
-        }
+    ngOnInit() {
+    }
 
     }
     ```
@@ -278,10 +385,9 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     ```html
     <div *ngIf="hero">
         <h2>{{hero.name}} details!</h2>
-        <div><label>id: </label>{{hero.id}}</div>
         <div>
-        <label>name: </label>
-        <input [(ngModel)]="hero.name" placeholder="name"/>
+            <md-input [ngModel]="hero.id" placeholder="id" disabled></md-input>    
+            <md-input [(ngModel)]="hero.name" placeholder="name"></md-input>
         </div>
     </div>
     ```
@@ -310,15 +416,24 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 
     ```typescript
     import { Component, OnInit } from '@angular/core';
+    import { MdToolbar } from '@angular2-material/toolbar';
+    import { MD_CARD_DIRECTIVES } from '@angular2-material/card';
+    import { MD_LIST_DIRECTIVES } from '@angular2-material/list';
+
     import { Hero, HeroService, HeroDetailComponent } from './heroes/index';
 
     @Component({
-        moduleId: module.id,
-        selector: 'toh-app',
-        templateUrl: 'toh.component.html',
-        styleUrls: ['toh.component.css'],
-        directives: [ HeroDetailComponent ],
-        providers: [HeroService]
+    moduleId: module.id,
+    selector: 'toh-app',
+    templateUrl: 'toh.component.html',
+    styleUrls: ['toh.component.css'],
+    directives: [
+        MdToolbar,
+        MD_CARD_DIRECTIVES,
+        MD_LIST_DIRECTIVES,
+        HeroDetailComponent
+    ],
+    providers: [HeroService]
     })
     export class TohAppComponent implements OnInit {
         title = 'Tour of Heroes';
@@ -342,66 +457,78 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 1. Update toh component template. Copy/paste the following into ***toh.component.html*** in *app/*:
 
     ```html
-    <h1>{{title}}</h1>
-    <h2>My Heroes</h2>
-    <ul class="heroes">
-        <li *ngFor="let hero of heroes"
-        [class.selected]="hero === selectedHero"
-        (click)="onSelect(hero)">
-            <span class="badge">{{hero.id}}</span> {{hero.name}}
-        </li>
-    </ul>
-    <toh-hero-detail [hero]="selectedHero"></toh-hero-detail>
+    <md-toolbar [color]="accent">
+        <span>{{title}}</span>
+    </md-toolbar>
+    <div class="card-container">
+        <md-card class="master-card">
+            <md-card-header>
+                <md-card-title>My Heroes</md-card-title> 
+            </md-card-header>
+            <md-card-content>
+                <md-list class="heroes">
+                    <md-list-item *ngFor="let hero of heroes" class="hero"
+                        [class.selected]="hero === selectedHero"
+                        (click)="onSelect(hero)">
+                        <span class="badge">{{hero.id}}</span> {{hero.name}}
+                    </md-list-item>
+                </md-list>
+            </md-card-content>
+        </md-card>
+        <md-card class="detail-card">
+            <toh-hero-detail [hero]="selectedHero"></toh-hero-detail>
+        </md-card>
+    <div>
     ```
 
 1. Update toh component styles. Copy/paste the following into ***toh.component.css*** in *app/*:
 
     ```css
     .selected {
-        background-color: #CFD8DC !important;
-        color: white;
+        background-color: #536DFE;
+        color: #536DFE;
     }
 
-    .heroes {
-        margin: 0 0 2em 0;
-        list-style-type: none;
-        padding: 0;
-        width: 15em;
+    md-toolbar {
+        background-color: #03A9F4;
+        color: #FFFFFF;
     }
 
-    .heroes li {
-        cursor: pointer;
-        position: relative;
-        left: 0;
-        background-color: #EEE;
-        margin: .5em;
-        padding: .3em 0;
-        height: 1.6em;
-        border-radius: 4px;
+    .card-container {
+        display: flex;
+        flex-flow: row wrap;
     }
 
-    .heroes li.selected:hover {
-        background-color: #BBD8DC !important;
-        color: white;
+    .master-card {
+        width: 300px;
+        box-sizing: border-box;
     }
 
-    .heroes li:hover {
-        color: #607D8B;
-        background-color: #DDD;
+    .detail-card {
+        flex-grow: 1;
+        box-sizing: border-box;
+    }
+
+    .master-card md-card-title {
+        font-size: 2rem;
+    }
+
+    .heroes md-list-item:hover {
+        color: #727272;
+        background-color: #000;
         left: .1em;
     }
 
     .heroes .text {
         position: relative;
-        top: -3px;
+        top: -4px;
     }
-
     .heroes .badge {
         display: inline-block;
         font-size: small;
-        color: white;
+        color: #FFFFFF;
         padding: 0.8em 0.7em 0 0.7em;
-        background-color: #607D8B;
+        background-color: #0288D1;
         line-height: 1em;
         position: relative;
         left: -1px;
@@ -411,7 +538,7 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
         border-radius: 4px 0 0 4px;
     }
     ```
-    
+
 ### Step 8. Run App
 
 1. Using the angular cli run the following:

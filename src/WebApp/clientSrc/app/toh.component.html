@@ -1,10 +1,22 @@
-<h1>{{title}}</h1>
-<h2>My Heroes</h2>
-<ul class="heroes">
-    <li *ngFor="let hero of heroes"
-    [class.selected]="hero === selectedHero"
-    (click)="onSelect(hero)">
-    <span class="badge">{{hero.id}}</span> {{hero.name}}
-    </li>
-</ul>
-<toh-hero-detail [hero]="selectedHero"></toh-hero-detail>
+<md-toolbar [color]="accent">
+  <span>{{title}}</span>
+</md-toolbar>
+<div class="card-container">
+    <md-card class="master-card">
+        <md-card-header>
+            <md-card-title>My Heroes</md-card-title> 
+        </md-card-header>
+        <md-card-content>
+            <md-list class="heroes">
+                <md-list-item *ngFor="let hero of heroes" class="hero"
+                    [class.selected]="hero === selectedHero"
+                    (click)="onSelect(hero)">
+                    <span class="badge">{{hero.id}}</span> {{hero.name}}
+                </md-list-item>
+            </md-list>
+        </md-card-content>
+    </md-card>
+    <md-card class="detail-card">
+        <toh-hero-detail [hero]="selectedHero"></toh-hero-detail>
+    </md-card>
+<div>

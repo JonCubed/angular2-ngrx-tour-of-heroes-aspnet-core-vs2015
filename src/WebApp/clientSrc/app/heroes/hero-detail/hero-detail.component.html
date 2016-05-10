@@ -1,8 +1,7 @@
 <div *ngIf="hero">
     <h2>{{hero.name}} details!</h2>
-    <div><label>id: </label>{{hero.id}}</div>
     <div>
-    <label>name: </label>
-    <input [(ngModel)]="hero.name" placeholder="name"/>
+        <md-input [ngModel]="hero.id" placeholder="id" disabled></md-input>    
+        <md-input [(ngModel)]="hero.name" placeholder="name"></md-input>
     </div>
 </div>
