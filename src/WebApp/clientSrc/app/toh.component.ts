@@ -1,29 +1,28 @@
-import { Component } from '@angular/core';
-import { Hero } from './shared/hero.model';
+import { Component, OnInit } from '@angular/core';
+import { Hero, HeroService, HeroDetailComponent } from './heroes/index';
 
 @Component({
   moduleId: module.id,
   selector: 'toh-app',
   templateUrl: 'toh.component.html',
-  styleUrls: ['toh.component.css']
+  styleUrls: ['toh.component.css'],
+  directives: [ HeroDetailComponent ],
+  providers: [HeroService] 
 })
-export class TohAppComponent {
+export class TohAppComponent implements OnInit {
     title = 'Tour of Heroes';
     selectedHero: Hero;
-    public heroes = HEROES;
+    public heroes = [];
+    
+    constructor(private heroService: HeroService) { }
+    
+    ngOnInit() {
+      this.getHeroes();
+    }
+    
+    getHeroes() {
+      this.heroes = this.heroService.getHeroes();
+    }
     
     onSelect(hero: Hero) { this.selectedHero = hero; }
 }
-
-var HEROES: Hero[] = [
-  { "id": 11, "name": "Mr. Nice" },
-  { "id": 12, "name": "Narco" },
-  { "id": 13, "name": "Bombasto" },
-  { "id": 14, "name": "Celeritas" },
-  { "id": 15, "name": "Magneta" },
-  { "id": 16, "name": "RubberMan" },
-  { "id": 17, "name": "Dynama" },
-  { "id": 18, "name": "Dr IQ" },
-  { "id": 19, "name": "Magma" },
-  { "id": 20, "name": "Tornado" }
-];

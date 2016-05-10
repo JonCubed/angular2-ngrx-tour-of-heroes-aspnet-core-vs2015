@@ -138,7 +138,7 @@ Follow the instructions in the follow blog - [Customize external web tools in vi
         ]
     }
     ```
-    > Note: We also added a post build scipt for running angular cli *build* command, which we will integrate soon 
+    > Note: We also added a post build scipt for running angular cli *build* command, which we will integrate soon
 
 1. Update ***Configure()*** in *Startup.cs* in the root folder
 
@@ -166,12 +166,18 @@ from Task Runner Explorer or in the command prompt using *ng build*
 
 Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/ts/latest/tutorial/) before continuing to have a better understanding of we are doing here.
 
-### Step 1 Hero Model
+### Step 1. Setup file structure
 
-1. Create a ***Hero*** class in *app/shared* using the cli
+1. Create a ***heroes*** folder in *app/*
+
+1. Create a ***shared*** folder in *app/heroes/*
+
+### Step 2. Hero Model
+
+1. Create a ***Hero*** class in *app/heroes/shared* using the cli
 
     ```powershell
-    > ng generate class Shared/Hero Model
+    > ng generate class Heroes/Shared/Hero Model
     ```
 
 1. Give the Hero class ***id*** and ***name*** properties. Copy/paste the following:
@@ -182,43 +188,158 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
         name: string;
     }
     ```
-### Step 2 App Component
 
-1. Copy/paste the following in ***toh.component.ts***
+### Step 3. Create Heroes Mock data
+
+1. Create a ***MockHero** class to *app/heroes/shred* using the angular cli
+
+    ```powershell
+    > ng generate class Heroes/Shared/MockHeroes
+    ```
+
+1. Add the mock data. Copy/paste the following into ***mock-heroes.ts*** in *app/heroes/shared/*
 
     ```typescript
-    import { Component } from '@angular/core';
-    import { Hero } from './shared/hero.model';
+    import { Hero } from './hero';
 
-    @Component({
-    moduleId: module.id,
-    selector: 'toh-app',
-    templateUrl: 'toh.component.html',
-    styleUrls: ['toh.component.css']
-    })
-    export class TohAppComponent {
-        title = 'Tour of Heroes';
-        selectedHero: Hero;
-        public heroes = HEROES;
-
-        onSelect(hero: Hero) { this.selectedHero = hero; }
-    }
-
-    var HEROES: Hero[] = [
-    { "id": 11, "name": "Mr. Nice" },
-    { "id": 12, "name": "Narco" },
-    { "id": 13, "name": "Bombasto" },
-    { "id": 14, "name": "Celeritas" },
-    { "id": 15, "name": "Magneta" },
-    { "id": 16, "name": "RubberMan" },
-    { "id": 17, "name": "Dynama" },
-    { "id": 18, "name": "Dr IQ" },
-    { "id": 19, "name": "Magma" },
-    { "id": 20, "name": "Tornado" }
+    export var HEROES: Hero[] = [
+        {"id": 11, "name": "Mr. Nice"},
+        {"id": 12, "name": "Narco"},
+        {"id": 13, "name": "Bombasto"},
+        {"id": 14, "name": "Celeritas"},
+        {"id": 15, "name": "Magneta"},
+        {"id": 16, "name": "RubberMan"},
+        {"id": 17, "name": "Dynama"},
+        {"id": 18, "name": "Dr IQ"},
+        {"id": 19, "name": "Magma"},
+        {"id": 20, "name": "Tornado"}
     ];
     ```
 
-1. Update toh component template. Copy/paste the following into ***toh.component.html***:
+### Step 4. Create Hero Service
+
+1. Create a ***Hero** service to *app/heroes/shared/* using the angular cli
+
+    ```powershell
+    > ng generate service Heroes/Shared/Hero
+    ```
+
+1. Replace ***hero.service.ts*** in *app/heroes/shared/*. Copy/paste the following:
+
+    ```typescript
+    import { Injectable } from '@angular/core';
+
+    import { HEROES } from './mock-heroes';
+
+    @Injectable()
+    export class HeroService {
+
+        getHeroes() {
+            return HEROES;
+        }
+
+    }
+    ```
+
+### Step 5. Hero Detail Component
+
+1. Add a ***HeroDetail** component to *app/heroes* using the angular cli
+
+    ```powershell
+    > ng generate component Heroes/HeroDetail
+    ```
+
+1. Replace ***/hero-detail.component.ts*** in *app/heroes/hero-detail/* with the following:
+
+    ```typescript
+    import { Component, OnInit, Input } from '@angular/core';
+    import { Hero } from '../shared/index'
+
+    @Component({
+        moduleId: module.id,
+        selector: 'toh-hero-detail',
+        templateUrl: 'hero-detail.component.html',
+        styleUrls: ['hero-detail.component.css']
+    })
+    export class HeroDetailComponent implements OnInit {
+
+        @Input() hero: Hero;
+
+        constructor() {}
+
+        ngOnInit() {
+        }
+
+    }
+    ```
+
+1. Add a template for HeroDetail Component ***hero-detail.component.html*** in *app/heroes/hero-detail/*. Copy/paste the following:
+
+    ```html
+    <div *ngIf="hero">
+        <h2>{{hero.name}} details!</h2>
+        <div><label>id: </label>{{hero.id}}</div>
+        <div>
+        <label>name: </label>
+        <input [(ngModel)]="hero.name" placeholder="name"/>
+        </div>
+    </div>
+    ```
+
+### Step 6. Barrel files
+
+1. Create a barrel file ***index.ts*** in *app/heroes/shared/*. Copy/paste the following:
+
+    ```typescript
+    export { Hero } from './hero.model';
+    export { HEROES } from './mock-heroes';
+    export { HeroService } from './hero.service';
+    ```
+> Hopefully in the future the angular cli will do this automatically
+
+1. Create a barrel file ***index.ts*** in *app/heroes/*. Copy/paste the following:
+
+    ```typescript
+    export { HeroDetailComponent } from './hero-detail/index';
+    export { Hero, HEROES, HeroService } from './shared/index';
+    ```
+
+### Step 7. App Component
+
+1. Copy/paste the following into ***toh.component.ts*** in *app/*
+
+    ```typescript
+    import { Component, OnInit } from '@angular/core';
+    import { Hero, HeroService, HeroDetailComponent } from './heroes/index';
+
+    @Component({
+        moduleId: module.id,
+        selector: 'toh-app',
+        templateUrl: 'toh.component.html',
+        styleUrls: ['toh.component.css'],
+        directives: [ HeroDetailComponent ],
+        providers: [HeroService]
+    })
+    export class TohAppComponent implements OnInit {
+        title = 'Tour of Heroes';
+        selectedHero: Hero;
+        public heroes = [];
+
+        constructor(private heroService: HeroService) { }
+
+        ngOnInit() {
+        this.getHeroes();
+        }
+
+        getHeroes() {
+        this.heroes = this.heroService.getHeroes();
+        }
+
+        onSelect(hero: Hero) { this.selectedHero = hero; }
+    }
+    ```
+
+1. Update toh component template. Copy/paste the following into ***toh.component.html*** in *app/*:
 
     ```html
     <h1>{{title}}</h1>
@@ -227,27 +348,20 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
         <li *ngFor="let hero of heroes"
         [class.selected]="hero === selectedHero"
         (click)="onSelect(hero)">
-        <span class="badge">{{hero.id}}</span> {{hero.name}}
+            <span class="badge">{{hero.id}}</span> {{hero.name}}
         </li>
     </ul>
-    <div *ngIf="selectedHero">
-        <h2>{{selectedHero.name}} details!</h2>
-        <div><label>id: </label>{{selectedHero.id}}</div>
-        <div>
-        <label>name: </label>
-        <input [(ngModel)]="selectedHero.name" placeholder="name"/>
-        </div>
-    </div>
+    <toh-hero-detail [hero]="selectedHero"></toh-hero-detail>
     ```
 
-1. Update toh component styles. Copy/paste the following into ***toh.component.css***:
+1. Update toh component styles. Copy/paste the following into ***toh.component.css*** in *app/*:
 
     ```css
     .selected {
         background-color: #CFD8DC !important;
         color: white;
     }
-    
+
     .heroes {
         margin: 0 0 2em 0;
         list-style-type: none;
@@ -296,4 +410,12 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
         margin-right: .8em;
         border-radius: 4px 0 0 4px;
     }
+    ```
+    
+### Step 8. Run App
+
+1. Using the angular cli run the following:
+
+    ``` cmd
+    > ng serve
     ```
