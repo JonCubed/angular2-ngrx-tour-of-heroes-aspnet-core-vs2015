@@ -1,7 +1,7 @@
 <div *ngIf="hero">
     <h2>{{hero.name}} details!</h2>
     <div>
-        <md-input [ngModel]="hero.id" placeholder="id" disabled></md-input>    
-        <md-input [(ngModel)]="hero.name" placeholder="name"></md-input>
+        <md-input [value]="hero.id" placeholder="id" disabled></md-input>    
+        <md-input #name [value]="hero.name" (keyup)="onNameChange(name.value)" placeholder="name"></md-input>
     </div>
 </div>

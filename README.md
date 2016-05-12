@@ -219,7 +219,7 @@ from Task Runner Explorer or in the command prompt using *ng build*
     ];
     /** User packages configuration. */
     var packages = createCustomConfig(materialPackages);
-    
+
     function createCustomConfig(packages) {
         return packages.reduce(function (packageConfig, packageName) {
             packageConfig[("@angular2-material/" + packageName)] = {
@@ -266,6 +266,126 @@ from Task Runner Explorer or in the command prompt using *ng build*
     System.config({ map: map, packages: packages });
     ```
 
+### Install ngrx/store
+
+1. Install the ngrx/store package
+
+    ```cmd
+    npm install @ngrx/store --save
+    ```
+
+1. Include ngrx/store in ***angular-cli-build.js***. Copy/paste the following:
+
+    ```js
+    /* global require, module */
+
+    var Angular2App = require('angular-cli/lib/broccoli/angular2-app');
+
+    module.exports = function(defaults) {
+        return new Angular2App(defaults, {
+            vendorNpmFiles: [
+            'systemjs/dist/system-polyfills.js',
+            'systemjs/dist/system.src.js',
+            'zone.js/dist/*.js',
+            'es6-shim/es6-shim.js',
+            'reflect-metadata/*.js',
+            'rxjs/**/*.js',
+            '@angular/**/*.js',
+            '@angular2-material/**/*.js',
+            '@ngrx/**/*.js'
+            ]
+        });
+    };
+    ```
+
+1. Set up SystemJS configuration ***system-config.ts*** in *clientSrc/*. Copy/paste the following:
+
+    ```js
+    /***********************************************************************************************
+    ** User Configuration.
+    **********************************************************************************************/
+    /** Map relative paths to URLs. */
+    const map: any = {
+        '@angular2-material': 'vendor/@angular2-material',
+        '@ngrx': 'vendor/@ngrx'
+    };
+
+    const materialPackages:string[] = [
+        'core',
+        'toolbar',
+        'icon',
+        'list',
+        'card',
+        'input'
+    ];
+
+    /** User packages configuration. */
+    let packages:any = {
+        "@ngrx/store" : { main: 'index', defaultExtension: 'js' }
+    };
+
+    packages = Object.assign(
+        packages,
+        createCustomConfig(materialPackages)
+    );
+
+    function createCustomConfig(packages: string[]): any {
+        return packages.reduce((packageConfig: any, packageName: string) => {
+            packageConfig[`@angular2-material/${packageName}`] = {
+            format: 'cjs',
+            defaultExtension: 'js',
+            main: packageName
+            };
+            return packageConfig;
+        }, {});
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    /***********************************************************************************************
+    ** Everything underneath this line is managed by the CLI.
+    **********************************************************************************************/
+    const barrels: string[] = [
+        // Angular specific barrels.
+        '@angular/core',
+        '@angular/common',
+        '@angular/compiler',
+        '@angular/http',
+        '@angular/router',
+        '@angular/platform-browser',
+        '@angular/platform-browser-dynamic',
+
+        // Thirdparty barrels.
+        'rxjs',
+        '@ngrx/store',
+
+        // App specific barrels.
+        'app',
+        'app/shared',
+        /** @cli-barrel */
+    ];
+
+    const cliSystemConfigPackages: any = {};
+    barrels.forEach((barrelName: string) => {
+        cliSystemConfigPackages[barrelName] = { main: 'index' };
+    });
+
+    /** Type declaration for ambient System. */
+    declare var System: any;
+
+    // Apply the CLI SystemJS configuration.
+    System.config({
+    map: {
+        '@angular': 'vendor/@angular',
+        'rxjs': 'vendor/rxjs',
+        'main': 'main.js'
+    },
+    packages: cliSystemConfigPackages
+    });
+
+    // Apply the user's configuration.
+    System.config({ map, packages });
+    ```
+
 ## Tour of Heroes
 
 Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/ts/latest/tutorial/) before continuing to have a better understanding of we are doing here.
@@ -281,7 +401,7 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 1. Create a ***Hero*** class in *app/heroes/shared* using the cli
 
     ```powershell
-    > ng generate class Heroes/Shared/Hero Model
+    > ng generate class heroes/shared/Hero model
     ```
 
 1. Give the Hero class ***id*** and ***name*** properties. Copy/paste the following:
@@ -293,9 +413,103 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     }
     ```
 
-### Step 3. Create Heroes Mock data
+### Step 3. Create App Store
 
-1. Create a ***MockHero** class to *app/heroes/shred* using the angular cli
+1. Create a *AppState* class to *app/shared*
+
+    ```powershell
+    > ng generate class shared/AppState store
+    ```
+
+1. Change the AppState class to an interface. Copy/paste the following:
+
+    ```typescript
+    import { Hero } from '../heroes/shared/hero.model'
+
+    export interface AppState {
+        heroes: Hero[];
+        selectedHero: Hero;
+    }
+    ```
+
+### Step 4. Create Reducers
+
+1. Create a *reducers* folder in *app/heroes/*
+
+1. Create a *Heroes* class in *app/heroes/reducers*
+
+    ```powershell
+    > ng generate class heroes/reducers/Heroes reducer
+    ```
+
+1. Change Heroes class into a function. Copy/paste the following:
+
+    ```typescript
+    import { Reducer, Action } from '@ngrx/store'
+
+    import { Hero } from '../shared'
+    import { AppState } from '../../shared'
+
+    export const HEROES_UPDATE_NAME = 'HEROES_UPDATE_NAME'
+    export const HEROES_LOAD = 'HEROES_LOAD'
+
+    export const heroesReducer:Reducer<Hero[]> = (state:Hero[], action: Action) => {
+
+        switch (action.type) {
+            case HEROES_LOAD:
+                return action.payload;
+
+            case HEROES_UPDATE_NAME:
+                console.log('HEROES_UPDATE_NAME');
+                console.log(state)
+                console.log(action)
+                return state.map(item => {
+                    if (item.id === action.payload.id) {
+                        return Object.assign({}, item, action.payload);
+                    }
+
+                    return item;
+                });
+
+            default:
+                console.log('Skip HeroesReducer, state:'+state+',action:'+action.payload)
+                return state;
+        }
+    }
+    ```
+
+1. Create a *Heroes* class in *app/heroes/reducers*
+
+    ```powershell
+    > ng generate class heroes/reducers/SelectHero reducer
+    ```
+
+1. Change SelectHero class into a function. Copy/paste the following:
+
+    ```typescript
+    import { Reducer, Action } from '@ngrx/store'
+
+    import { Hero } from '../shared'
+    import { AppState } from '../../shared'
+
+    export const HEROES_SELECT = 'HEROES_SELECT'
+
+    export const selectHeroReducer:Reducer<Hero> = (state:Hero, action: Action) => {
+
+        switch (action.type) {
+            case HEROES_SELECT:
+                return action.payload;
+
+            default:
+                console.log('Skip SelectHeroReducer, state:'+state+',action: '+action.type+',payload:'+action.payload)
+                return state;
+        }
+    }
+    ```
+
+### Step 5. Create Heroes Mock data
+
+1. Create a ***MockHero** class to *app/heroes/shared* using the angular cli
 
     ```powershell
     > ng generate class Heroes/Shared/MockHeroes
@@ -320,7 +534,7 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     ];
     ```
 
-### Step 4. Create Hero Service
+### Step 6. Create Hero Service
 
 1. Create a ***Hero** service to *app/heroes/shared/* using the angular cli
 
@@ -332,20 +546,40 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 
     ```typescript
     import { Injectable } from '@angular/core';
+    import { Observable } from 'rxjs/Rx';
+    import { Store } from '@ngrx/store';
 
+    import { HEROES_UPDATE_NAME, HEROES_SELECT, HEROES_LOAD } from '../reducers/';
     import { HEROES } from './mock-heroes';
+    import { Hero } from './hero.model';
+    import { AppState } from '../../shared';
 
     @Injectable()
     export class HeroService {
+        heroes$: Observable<Hero[]>;
 
-        getHeroes() {
-            return HEROES;
+        constructor(public store: Store<AppState>) {
+            this.heroes$ = store.select<Hero[]>('heroes');
+        }
+
+        loadHeroes() {
+            let heroes = HEROES;
+
+            this.store.dispatch({type:HEROES_LOAD, payload:heroes})
+        }
+
+        updateName(id: number, name:string) {
+            this.store.dispatch({type:HEROES_UPDATE_NAME, payload:{id, name}})
+        }
+
+        select(hero: Hero) {
+            this.store.dispatch({type:HEROES_SELECT, payload:hero})
         }
 
     }
     ```
 
-### Step 5. Hero Detail Component
+### Step 7. Hero Detail Component
 
 1. Add a ***HeroDetail** component to *app/heroes* using the angular cli
 
@@ -356,27 +590,41 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 1. Replace ***/hero-detail.component.ts*** in *app/heroes/hero-detail/* with the following:
 
     ```typescript
-    import { Component, OnInit, Input } from '@angular/core';
+    import {
+        Component
+        , OnInit
+        , Input
+        , Output
+        , EventEmitter
+        ,ChangeDetectionStrategy
+    } from '@angular/core';
+
     import { MD_INPUT_DIRECTIVES } from '@angular2-material/input';
 
     import { Hero } from '../shared/index'
 
     @Component({
-    moduleId: module.id,
-    selector: 'toh-hero-detail',
-    templateUrl: 'hero-detail.component.html',
-    styleUrls: ['hero-detail.component.css'],
-    directives: [ MD_INPUT_DIRECTIVES ]
+        moduleId: module.id,
+        selector: 'toh-hero-detail',
+        templateUrl: 'hero-detail.component.html',
+        styleUrls: ['hero-detail.component.css'],
+        directives: [ MD_INPUT_DIRECTIVES ],
+        changeDetection: ChangeDetectionStrategy.OnPush
     })
     export class HeroDetailComponent implements OnInit {
 
-    @Input() hero: Hero;
+        @Input() hero: Hero;
+        @Output() change = new EventEmitter(true);
 
-    constructor() {}
+        constructor() {}
 
-    ngOnInit() {
-    }
+        ngOnInit() {
+        }
 
+        onNameChange(name:string) {
+            console.log(name);
+            this.change.emit({id: this.hero.id, name});
+        }
     }
     ```
 
@@ -386,13 +634,15 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     <div *ngIf="hero">
         <h2>{{hero.name}} details!</h2>
         <div>
-            <md-input [ngModel]="hero.id" placeholder="id" disabled></md-input>    
-            <md-input [(ngModel)]="hero.name" placeholder="name"></md-input>
+            <md-input [value]="hero.id" placeholder="id" disabled></md-input>    
+            <md-input #name [value]="hero.name" (keyup)="onNameChange(name.value)" placeholder="name"></md-input>
         </div>
     </div>
     ```
 
-### Step 6. Barrel files
+### Step 8. Barrel files
+
+> Hopefully in the future the angular cli will do this automatically
 
 1. Create a barrel file ***index.ts*** in *app/heroes/shared/*. Copy/paste the following:
 
@@ -401,16 +651,39 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     export { HEROES } from './mock-heroes';
     export { HeroService } from './hero.service';
     ```
-> Hopefully in the future the angular cli will do this automatically
+
+1. Create a barrel file ***index.ts*** in *app/heroes/reducers*
+
+    ```typescript
+    export { HEROES_UPDATE_NAME , HEROES_LOAD , heroesReducer } from'./heroes.reducer'
+
+    export { HEROES_SELECT, selectHero } from'./select-hero.reducer'
+    ```
 
 1. Create a barrel file ***index.ts*** in *app/heroes/*. Copy/paste the following:
 
     ```typescript
-    export { HeroDetailComponent } from './hero-detail/index';
-    export { Hero, HEROES, HeroService } from './shared/index';
+    export * from './hero-detail';
+    export * from './shared';
+    export * from './reducers';
     ```
 
-### Step 7. App Component
+1. Create a barrel file ***index.ts*** in *app/shared/*. Copy/paste the following:
+
+    ```typescript
+    export { AppState } from './app-state.store';
+    ```
+
+1. Create a barrel file ***index.ts*** in *app/*. Copy/paste the following:
+
+    ```typescript
+    export {environment} from './environment';
+    export {TohAppComponent} from './toh.component';
+    export * from './heroes';
+    export * from './shared';
+    ```
+
+### Step 9. App Component
 
 1. Copy/paste the following into ***toh.component.ts*** in *app/*
 
@@ -419,8 +692,11 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     import { MdToolbar } from '@angular2-material/toolbar';
     import { MD_CARD_DIRECTIVES } from '@angular2-material/card';
     import { MD_LIST_DIRECTIVES } from '@angular2-material/list';
+    import { Observable } from 'rxjs/Observable';
+    import { Store } from '@ngrx/store';
 
-    import { Hero, HeroService, HeroDetailComponent } from './heroes/index';
+    import { AppState } from './index'
+    import { Hero, HeroService, HeroDetailComponent, HEROES_UPDATE_NAME } from './heroes/index';
 
     @Component({
     moduleId: module.id,
@@ -437,20 +713,25 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     })
     export class TohAppComponent implements OnInit {
         title = 'Tour of Heroes';
-        selectedHero: Hero;
-        public heroes = [];
+        selectedHero$: Observable<Hero>;
+        heroes$: Observable<Hero[]>;
 
-        constructor(private heroService: HeroService) { }
+        constructor(private heroService: HeroService, public store: Store<AppState>){
+            this.heroes$ = this.heroService.heroes$;
+            this.selectedHero$ = store.select<Hero>('selectHero'); 
+        }
 
         ngOnInit() {
-        this.getHeroes();
+        this.heroService.loadHeroes();
         }
 
-        getHeroes() {
-        this.heroes = this.heroService.getHeroes();
+        onSelect(hero: Hero) {
+            this.heroService.select(hero);
         }
 
-        onSelect(hero: Hero) { this.selectedHero = hero; }
+        onHeroDetailsChange(event:{id:number, name:string}) {
+            this.heroService.updateName(event.id, event.name);
+        }
     }
     ```
 
@@ -467,8 +748,8 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
             </md-card-header>
             <md-card-content>
                 <md-list class="heroes">
-                    <div *ngFor="let hero of heroes" class="hero"
-                        [class.selected]="hero === selectedHero"
+                    <div *ngFor="let hero of (heroes$ | async)" class="hero"
+                        [class.selected]="hero === (selectedHero$ | async)"
                         (click)="onSelect(hero)">
                     <md-list-item>
                         <p md-line>
@@ -480,7 +761,7 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
             </md-card-content>
         </md-card>
         <md-card class="detail-card">
-            <toh-hero-detail [hero]="selectedHero"></toh-hero-detail>
+            <toh-hero-detail [hero]="selectedHero$ | async" (change)="onHeroDetailsChange($event)"></toh-hero-detail>
         </md-card>
     <div>
     ```
@@ -552,10 +833,119 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     }
     ```
 
-### Step 8. Run App
+### Step 10. Update bootstrap
 
-1. Using the angular cli run the following:
+1. Update bootstrap to provide store in ***main.ts***
 
-    ``` cmd
-    > ng serve
+    ```typescript
+    import { bootstrap } from '@angular/platform-browser-dynamic';
+    import { enableProdMode } from '@angular/core';
+    import { provideStore } from '@ngrx/store';
+
+    import { TohAppComponent, environment,heroesReducer,selectHeroReducer } from './app/';
+
+    if (environment.production) {
+        enableProdMode();
+    }
+
+    bootstrap(
+        TohAppComponent,
+        [ provideStore({heroes: heroesReducer, selectHero:selectHeroReducer}, {heroes: []})]
+    );
     ```
+
+### Step 11. Update ***system-config.ts*** in *app/* with all the app folders
+
+    ```
+    /***********************************************************************************************
+    ** User Configuration.
+    **********************************************************************************************/
+    /** Map relative paths to URLs. */
+    const map: any = {
+        '@angular2-material': 'vendor/@angular2-material',
+        '@ngrx': 'vendor/@ngrx'
+    };
+
+    const materialPackages:string[] = [
+        'core',
+        'toolbar',
+        'icon',
+        'list',
+        'card',
+        'input'
+    ];
+
+    /** User packages configuration. */
+    let packages:any = {
+        "@ngrx/store" : { main: 'index', defaultExtension: 'js' }
+    };
+
+    packages = Object.assign(
+        packages,
+        createCustomConfig(materialPackages)
+    );
+
+    function createCustomConfig(packages: string[]): any {
+        return packages.reduce((packageConfig: any, packageName: string) => {
+            packageConfig[`@angular2-material/${packageName}`] = {
+            format: 'cjs',
+            defaultExtension: 'js',
+            main: packageName
+            };
+            return packageConfig;
+        }, {});
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    /***********************************************************************************************
+    * Everything underneath this line is managed by the CLI.
+    **********************************************************************************************/
+    const barrels: string[] = [
+        // Angular specific barrels.
+        '@angular/core',
+        '@angular/common',
+        '@angular/compiler',
+        '@angular/http',
+        '@angular/router',
+        '@angular/platform-browser',
+        '@angular/platform-browser-dynamic',
+
+        // Thirdparty barrels.
+        'rxjs',
+        '@ngrx/store',
+
+        // App specific barrels.
+        'app',
+        'app/shared',
+        'app/heroes',
+        'app/heroes/hero-detail',
+        'app/heroes/shared',
+        'app/heroes/reducers',
+        /** @cli-barrel */
+    ];
+
+    const cliSystemConfigPackages: any = {};
+        barrels.forEach((barrelName: string) => {
+        cliSystemConfigPackages[barrelName] = { main: 'index' };
+    });
+
+    /** Type declaration for ambient System. */
+    declare var System: any;
+
+    // Apply the CLI SystemJS configuration.
+    System.config({
+        map: {
+            '@angular': 'vendor/@angular',
+            'rxjs': 'vendor/rxjs',
+            'main': 'main.js'
+        },
+        packages: cliSystemConfigPackages
+    });
+
+    // Apply the user's configuration.
+    System.config({ map, packages });
+    ```
+
+### Step 12. Run App
+
+1. Start the Visual Studio Debugger, press **F5**

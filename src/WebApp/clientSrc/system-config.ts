@@ -3,7 +3,8 @@
  **********************************************************************************************/
 /** Map relative paths to URLs. */
 const map: any = {
-    '@angular2-material': 'vendor/@angular2-material'
+    '@angular2-material': 'vendor/@angular2-material',
+    '@ngrx': 'vendor/@ngrx'
 };
 
 const materialPackages:string[] = [
@@ -16,12 +17,14 @@ const materialPackages:string[] = [
 ];
 
 /** User packages configuration. */
-/*const packages:any = Object.assign(
-  {},
-  createCustomConfig(materialPackages)
-);*/
+let packages:any = {
+  "@ngrx/store" : { main: 'index', defaultExtension: 'js' }
+};
 
-const packages:any = createCustomConfig(materialPackages);
+packages = Object.assign(
+  packages,
+  createCustomConfig(materialPackages)
+);
 
 function createCustomConfig(packages: string[]): any {
   return packages.reduce((packageConfig: any, packageName: string) => {
@@ -50,12 +53,15 @@ const barrels: string[] = [
 
   // Thirdparty barrels.
   'rxjs',
-
+  '@ngrx/store',
+  
   // App specific barrels.
   'app',
   'app/shared',
+  'app/heroes',
   'app/heroes/hero-detail',
   'app/heroes/shared',
+  'app/heroes/reducers',
   /** @cli-barrel */
 ];
 

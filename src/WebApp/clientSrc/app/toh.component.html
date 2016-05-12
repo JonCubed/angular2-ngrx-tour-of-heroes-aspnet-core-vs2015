@@ -8,8 +8,8 @@
         </md-card-header>
         <md-card-content>
             <md-list class="heroes">
-                <div *ngFor="let hero of heroes" class="hero"
-                    [class.selected]="hero === selectedHero"
+                <div *ngFor="let hero of (heroes$ | async)" class="hero"
+                    [class.selected]="hero === (selectedHero$ | async)"
                     (click)="onSelect(hero)">
                 <md-list-item>
                     
@@ -22,6 +22,6 @@
         </md-card-content>
     </md-card>
     <md-card class="detail-card">
-        <toh-hero-detail [hero]="selectedHero"></toh-hero-detail>
+        <toh-hero-detail [hero]="selectedHero$ | async" (change)="onHeroDetailsChange($event)"></toh-hero-detail>
     </md-card>
 <div>

@@ -1,2 +1,3 @@
-export { HeroDetailComponent } from './hero-detail/index';
-export { Hero, HEROES, HeroService } from './shared/index';
+export * from './hero-detail';
+export * from './shared';
+export * from './reducers';
