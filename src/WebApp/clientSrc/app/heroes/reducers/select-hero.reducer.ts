@@ -12,7 +12,6 @@ export const selectHeroReducer:Reducer<Hero> = (state:Hero, action: Action) => {
             return action.payload;
                           
         default:
-            console.log('Skip SelectHeroReducer, state:'+state+',action: '+action.type+',payload:'+action.payload)
             return state;
     }
 }

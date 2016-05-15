@@ -4,24 +4,20 @@
 <div class="card-container">
     <md-card class="master-card">
         <md-card-header>
-            <md-card-title>My Heroes</md-card-title> 
+            <md-card-title>My Heroes</md-card-title>
         </md-card-header>
         <md-card-content>
-            <md-list class="heroes">
-                <div *ngFor="let hero of (heroes$ | async)" class="hero"
-                    [class.selected]="hero === (selectedHero$ | async)"
-                    (click)="onSelect(hero)">
-                <md-list-item>
-                    
-                    <p md-line>
-                        <span class="badge">{{hero.id}}</span> {{hero.name}}
-                    </p>
-                </md-list-item>
-                </div>
-            </md-list>
+            <toh-hero-list
+                [heroes]="heroes$ | async"
+                [selectedHero]="selectedHero$ | async"
+                (select)="onHeroListSelectChange($event)">
+            </toh-hero-list>
         </md-card-content>
     </md-card>
     <md-card class="detail-card">
-        <toh-hero-detail [hero]="selectedHero$ | async" (change)="onHeroDetailsChange($event)"></toh-hero-detail>
+        <toh-hero-detail
+            [hero]="selectedHero$ | async"
+            (change)="onHeroDetailsChange($event)">
+        </toh-hero-detail>
     </md-card>
 <div>

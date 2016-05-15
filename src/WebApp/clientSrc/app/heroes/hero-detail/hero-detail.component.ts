@@ -1,6 +1,5 @@
 import { 
   Component
-  , OnInit
   , Input
   , Output
   , EventEmitter
@@ -19,18 +18,12 @@ import { Hero } from '../shared/index'
   directives: [ MD_INPUT_DIRECTIVES ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class HeroDetailComponent implements OnInit {
+export class HeroDetailComponent {
 
   @Input() hero: Hero;
   @Output() change = new EventEmitter(true);
 
-  constructor() {}
-
-  ngOnInit() {
-  }
-
   onNameChange(name:string) {
-    console.log(name);
     this.change.emit({id: this.hero.id, name});
   }
 }

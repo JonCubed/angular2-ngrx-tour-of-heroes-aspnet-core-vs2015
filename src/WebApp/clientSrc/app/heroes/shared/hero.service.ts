@@ -9,22 +9,22 @@ import { AppState } from '../../shared';
 
 @Injectable()
 export class HeroService {
-  heroes$: Observable<Hero[]>;
-  
+  heroes$: Observable<Array<Hero>>;
+
   constructor(public store: Store<AppState>) {
-    this.heroes$ = store.select<Hero[]>('heroes');
+    this.heroes$ = store.select<Array<Hero>>('heroes');
   }
-  
+
   loadHeroes() {
     let heroes = HEROES;
-                           
+
     this.store.dispatch({type:HEROES_LOAD, payload:heroes})
   }
-  
+
   updateName(id: number, name:string) {
     this.store.dispatch({type:HEROES_UPDATE_NAME, payload:{id, name}})
   }
-  
+
   select(hero: Hero) {
     this.store.dispatch({type:HEROES_SELECT, payload:hero})
   }

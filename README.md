@@ -14,7 +14,7 @@ I'm using:
 * Typescript 1.8.30.0
 * Typings 0.8.1
 * NPM 3.8.8
-* Angular Cli 0.1.0
+* Angular Cli 1.0.0-beta.1
 
 Visual Studio 2015 includes its own version of external tools, unfortunately these tools have not been updated causing errors with some required packages.
 To fix this we are going to force Visual Studio to use our global installs of node and npm.
@@ -427,7 +427,7 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     import { Hero } from '../heroes/shared/hero.model'
 
     export interface AppState {
-        heroes: Hero[];
+        heroes: Array<Hero>;
         selectedHero: Hero;
     }
     ```
@@ -453,16 +453,13 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     export const HEROES_UPDATE_NAME = 'HEROES_UPDATE_NAME'
     export const HEROES_LOAD = 'HEROES_LOAD'
 
-    export const heroesReducer:Reducer<Hero[]> = (state:Hero[], action: Action) => {
+    export const heroesReducer:Reducer<Array<Hero>> = (state:Array<Hero>, action: Action) => {
 
         switch (action.type) {
             case HEROES_LOAD:
                 return action.payload;
 
             case HEROES_UPDATE_NAME:
-                console.log('HEROES_UPDATE_NAME');
-                console.log(state)
-                console.log(action)
                 return state.map(item => {
                     if (item.id === action.payload.id) {
                         return Object.assign({}, item, action.payload);
@@ -472,7 +469,6 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
                 });
 
             default:
-                console.log('Skip HeroesReducer, state:'+state+',action:'+action.payload)
                 return state;
         }
     }
@@ -501,7 +497,6 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
                 return action.payload;
 
             default:
-                console.log('Skip SelectHeroReducer, state:'+state+',action: '+action.type+',payload:'+action.payload)
                 return state;
         }
     }
@@ -520,7 +515,7 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     ```typescript
     import { Hero } from './hero';
 
-    export var HEROES: Hero[] = [
+    export var HEROES: Array<Hero> = [
         {"id": 11, "name": "Mr. Nice"},
         {"id": 12, "name": "Narco"},
         {"id": 13, "name": "Bombasto"},
@@ -547,19 +542,19 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     ```typescript
     import { Injectable } from '@angular/core';
     import { Observable } from 'rxjs/Rx';
-    import { Store } from '@ngrx/store';
+    import {Store} from '@ngrx/store';
 
-    import { HEROES_UPDATE_NAME, HEROES_SELECT, HEROES_LOAD } from '../reducers/';
+    import {HEROES_UPDATE_NAME, HEROES_SELECT, HEROES_LOAD } from '../reducers/';
     import { HEROES } from './mock-heroes';
     import { Hero } from './hero.model';
     import { AppState } from '../../shared';
 
     @Injectable()
     export class HeroService {
-        heroes$: Observable<Hero[]>;
+        heroes$: Observable<Array<Hero>>;
 
         constructor(public store: Store<AppState>) {
-            this.heroes$ = store.select<Hero[]>('heroes');
+            this.heroes$ = store.select<Array<Hero>>('heroes');
         }
 
         loadHeroes() {
@@ -579,194 +574,60 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     }
     ```
 
-### Step 7. Hero Detail Component
+### Step 7. Hero List Component
 
-1. Add a ***HeroDetail** component to *app/heroes* using the angular cli
+1. Add a ***HeroList** component to *app/heroes* using the angular cli
 
     ```powershell
-    > ng generate component Heroes/HeroDetail
+    > ng generate component Heroes/HeroList
     ```
 
-1. Replace ***/hero-detail.component.ts*** in *app/heroes/hero-detail/* with the following:
+1. Replace ***/hero-list.component.ts*** in *app/heroes/hero-list/* with the following:
 
     ```typescript
-    import {
-        Component
-        , OnInit
-        , Input
-        , Output
-        , EventEmitter
-        ,ChangeDetectionStrategy
-    } from '@angular/core';
+    import { Component, Input, Output, EventEmitter } from '@angular/core';
 
-    import { MD_INPUT_DIRECTIVES } from '@angular2-material/input';
-
-    import { Hero } from '../shared/index'
+    import { Hero } from '../shared';
 
     @Component({
         moduleId: module.id,
-        selector: 'toh-hero-detail',
-        templateUrl: 'hero-detail.component.html',
-        styleUrls: ['hero-detail.component.css'],
-        directives: [ MD_INPUT_DIRECTIVES ],
-        changeDetection: ChangeDetectionStrategy.OnPush
+        selector: 'toh-hero-list',
+        templateUrl: 'hero-list.component.html',
+        styleUrls: ['hero-list.component.css']
     })
-    export class HeroDetailComponent implements OnInit {
+    export class HeroListComponent {
 
-        @Input() hero: Hero;
-        @Output() change = new EventEmitter(true);
+        @Input() heroes: Array<Hero>;
+        @Input() selectedHero: Hero;
+        @Output() select = new EventEmitter<Hero>(true);  
 
-        constructor() {}
-
-        ngOnInit() {
+        onSelect(hero: Hero) {
+            this.select.emit(hero);
         }
 
-        onNameChange(name:string) {
-            console.log(name);
-            this.change.emit({id: this.hero.id, name});
-        }
     }
     ```
 
-1. Add a template for HeroDetail Component ***hero-detail.component.html*** in *app/heroes/hero-detail/*. Copy/paste the following:
+1. Add a template for HeroList Component ***hero-List.component.html*** in *app/heroes/hero-list/*. Copy/paste the following:
 
     ```html
-    <div *ngIf="hero">
-        <h2>{{hero.name}} details!</h2>
-        <div>
-            <md-input [value]="hero.id" placeholder="id" disabled></md-input>    
-            <md-input #name [value]="hero.name" (keyup)="onNameChange(name.value)" placeholder="name"></md-input>
-        </div>
+    <div *ngIf="heroes">
+        <md-list class="heroes">
+            <div *ngFor="let hero of heroes"
+                class="hero"
+                [class.selected]="hero === selectedHero"
+                (click)="onSelect(hero)">
+                <md-list-item>
+                    <p md-line>
+                        <span class="badge">{{hero.id}}</span> {{hero.name}}
+                    </p>
+                </md-list-item>
+            </div>
+        </md-list>
     </div>
     ```
 
-### Step 8. Barrel files
-
-> Hopefully in the future the angular cli will do this automatically
-
-1. Create a barrel file ***index.ts*** in *app/heroes/shared/*. Copy/paste the following:
-
-    ```typescript
-    export { Hero } from './hero.model';
-    export { HEROES } from './mock-heroes';
-    export { HeroService } from './hero.service';
-    ```
-
-1. Create a barrel file ***index.ts*** in *app/heroes/reducers*
-
-    ```typescript
-    export { HEROES_UPDATE_NAME , HEROES_LOAD , heroesReducer } from'./heroes.reducer'
-
-    export { HEROES_SELECT, selectHero } from'./select-hero.reducer'
-    ```
-
-1. Create a barrel file ***index.ts*** in *app/heroes/*. Copy/paste the following:
-
-    ```typescript
-    export * from './hero-detail';
-    export * from './shared';
-    export * from './reducers';
-    ```
-
-1. Create a barrel file ***index.ts*** in *app/shared/*. Copy/paste the following:
-
-    ```typescript
-    export { AppState } from './app-state.store';
-    ```
-
-1. Create a barrel file ***index.ts*** in *app/*. Copy/paste the following:
-
-    ```typescript
-    export {environment} from './environment';
-    export {TohAppComponent} from './toh.component';
-    export * from './heroes';
-    export * from './shared';
-    ```
-
-### Step 9. App Component
-
-1. Copy/paste the following into ***toh.component.ts*** in *app/*
-
-    ```typescript
-    import { Component, OnInit } from '@angular/core';
-    import { MdToolbar } from '@angular2-material/toolbar';
-    import { MD_CARD_DIRECTIVES } from '@angular2-material/card';
-    import { MD_LIST_DIRECTIVES } from '@angular2-material/list';
-    import { Observable } from 'rxjs/Observable';
-    import { Store } from '@ngrx/store';
-
-    import { AppState } from './index'
-    import { Hero, HeroService, HeroDetailComponent, HEROES_UPDATE_NAME } from './heroes/index';
-
-    @Component({
-    moduleId: module.id,
-    selector: 'toh-app',
-    templateUrl: 'toh.component.html',
-    styleUrls: ['toh.component.css'],
-    directives: [
-        MdToolbar,
-        MD_CARD_DIRECTIVES,
-        MD_LIST_DIRECTIVES,
-        HeroDetailComponent
-    ],
-    providers: [HeroService]
-    })
-    export class TohAppComponent implements OnInit {
-        title = 'Tour of Heroes';
-        selectedHero$: Observable<Hero>;
-        heroes$: Observable<Hero[]>;
-
-        constructor(private heroService: HeroService, public store: Store<AppState>){
-            this.heroes$ = this.heroService.heroes$;
-            this.selectedHero$ = store.select<Hero>('selectHero'); 
-        }
-
-        ngOnInit() {
-        this.heroService.loadHeroes();
-        }
-
-        onSelect(hero: Hero) {
-            this.heroService.select(hero);
-        }
-
-        onHeroDetailsChange(event:{id:number, name:string}) {
-            this.heroService.updateName(event.id, event.name);
-        }
-    }
-    ```
-
-1. Update toh component template. Copy/paste the following into ***toh.component.html*** in *app/*:
-
-    ```html
-    <md-toolbar [color]="accent">
-        <span>{{title}}</span>
-    </md-toolbar>
-    <div class="card-container">
-        <md-card class="master-card">
-            <md-card-header>
-                <md-card-title>My Heroes</md-card-title> 
-            </md-card-header>
-            <md-card-content>
-                <md-list class="heroes">
-                    <div *ngFor="let hero of (heroes$ | async)" class="hero"
-                        [class.selected]="hero === (selectedHero$ | async)"
-                        (click)="onSelect(hero)">
-                    <md-list-item>
-                        <p md-line>
-                            <span class="badge">{{hero.id}}</span> {{hero.name}}
-                        </p>
-                    </md-list-item>
-                    </div>
-                </md-list>
-            </md-card-content>
-        </md-card>
-        <md-card class="detail-card">
-            <toh-hero-detail [hero]="selectedHero$ | async" (change)="onHeroDetailsChange($event)"></toh-hero-detail>
-        </md-card>
-    <div>
-    ```
-
-1. Update toh component styles. Copy/paste the following into ***toh.component.css*** in *app/*:
+1. Add a styles for HeroList Component ***hero-List.component.css*** in *app/heroes/hero-list/*. Copy/paste the following:
 
     ```css
     .hero:hover {
@@ -786,30 +647,6 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 
     .hero.selected .badge {
         background-color: #03A9F4;
-    }
-
-    md-toolbar {
-        background-color: #03A9F4;
-        color: #FFFFFF;
-    }
-
-    .card-container {
-        display: flex;
-        flex-flow: row wrap;
-    }
-
-    .master-card {
-        width: 300px;
-        box-sizing: border-box;
-    }
-
-    .detail-card {
-        flex-grow: 1;
-        box-sizing: border-box;
-    }
-
-    .master-card md-card-title {
-        font-size: 2rem;
     }
 
     .heroes .text {
@@ -833,7 +670,220 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     }
     ```
 
-### Step 10. Update bootstrap
+### Step 8. Hero Detail Component
+
+1. Add a ***HeroDetail** component to *app/heroes* using the angular cli
+
+    ```powershell
+    > ng generate component Heroes/HeroDetail
+    ```
+
+1. Replace ***/hero-detail.component.ts*** in *app/heroes/hero-detail/* with the following:
+
+    ```typescript
+    import {
+        Component
+        , Input
+        , Output
+        , EventEmitter
+        ,ChangeDetectionStrategy
+    } from '@angular/core';
+
+    import { MD_INPUT_DIRECTIVES } from '@angular2-material/input';
+
+    import { Hero } from '../shared/index'
+
+    @Component({
+        moduleId: module.id,
+        selector: 'toh-hero-detail',
+        templateUrl: 'hero-detail.component.html',
+        styleUrls: ['hero-detail.component.css'],
+        directives: [ MD_INPUT_DIRECTIVES ],
+        changeDetection: ChangeDetectionStrategy.OnPush
+    })
+    export class HeroDetailComponent {
+
+        @Input() hero: Hero;
+        @Output() change = new EventEmitter(true);
+
+        onNameChange(name:string) {
+            console.log(name);
+            this.change.emit({id: this.hero.id, name});
+        }
+    }
+    ```
+
+1. Add a template for HeroDetail Component ***hero-detail.component.html*** in *app/heroes/hero-detail/*. Copy/paste the following:
+
+    ```html
+    <div *ngIf="hero">
+        <h2>{{hero.name}} details!</h2>
+        <div>
+            <md-input [value]="hero.id" placeholder="id" disabled></md-input>
+            <md-input #name [value]="hero.name" (keyup)="onNameChange(name.value)" placeholder="name"></md-input>
+        </div>
+    </div>
+    ```
+
+### Step 9. Barrel files
+
+> Hopefully in the future the angular cli will do this automatically
+
+1. Create a barrel file ***index.ts*** in *app/heroes/shared/*. Copy/paste the following:
+
+    ```typescript
+    export { Hero } from './hero.model';
+    export { HEROES } from './mock-heroes';
+    export { HeroService } from './hero.service';
+    ```
+
+1. Create a barrel file ***index.ts*** in *app/heroes/reducers*
+
+    ```typescript
+    export { HEROES_UPDATE_NAME , HEROES_LOAD , heroesReducer } from'./heroes.reducer'
+    export { HEROES_SELECT, selectHero } from'./select-hero.reducer'
+    ```
+
+1. Create a barrel file ***index.ts*** in *app/heroes/*. Copy/paste the following:
+
+    ```typescript
+    export * from './hero-detail';
+    export * from './hero-list';
+    export * from './shared';
+    export * from './reducers';
+    ```
+
+1. Create a barrel file ***index.ts*** in *app/shared/*. Copy/paste the following:
+
+    ```typescript
+    export { AppState } from './app-state.store';
+    ```
+
+1. Create a barrel file ***index.ts*** in *app/*. Copy/paste the following:
+
+    ```typescript
+    export {environment} from './environment';
+    export {TohAppComponent} from './toh.component';
+    export * from './heroes';
+    export * from './shared';
+    ```
+
+### Step 10. App Component
+
+1. Copy/paste the following into ***toh.component.ts*** in *app/*
+
+    ```typescript
+    import { Component, OnInit } from '@angular/core';
+    import { MdToolbar } from '@angular2-material/toolbar';
+    import { MD_CARD_DIRECTIVES } from '@angular2-material/card';
+    import { MD_LIST_DIRECTIVES } from '@angular2-material/list';
+    import { Observable } from 'rxjs/Observable';
+    import { Store } from '@ngrx/store';
+
+    import { AppState } from './index'
+    import {
+        Hero,
+        HeroService,
+        HeroListComponent,
+        HeroDetailComponent,
+        HEROES_UPDATE_NAME
+    } from './heroes/index';
+
+    @Component({
+    moduleId: module.id,
+    selector: 'toh-app',
+    templateUrl: 'toh.component.html',
+    styleUrls: ['toh.component.css'],
+    directives: [
+        MdToolbar,
+        MD_CARD_DIRECTIVES,
+        MD_LIST_DIRECTIVES,
+        HeroListComponent,
+        HeroDetailComponent
+    ],
+    providers: [HeroService]
+    })
+    export class TohAppComponent implements OnInit {
+        title = 'Tour of Heroes';
+        selectedHero$: Observable<Hero>;
+        heroes$: Observable<Array<Hero>>;
+
+        constructor(private heroService: HeroService, public store: Store<AppState>){
+            this.heroes$ = this.heroService.heroes$;
+            this.selectedHero$ = store.select<Hero>('selectHero');
+    }
+
+        ngOnInit() {
+            this.heroService.loadHeroes();
+        }
+
+        onHeroListSelectChange(hero: Hero) {
+            this.heroService.select(hero);
+        }
+
+        onHeroDetailsChange(event:{id:number, name:string}) {
+            this.heroService.updateName(event.id, event.name);
+        }
+    }
+    ```
+
+1. Update toh component template. Copy/paste the following into ***toh.component.html*** in *app/*:
+
+    ```html
+    <md-toolbar [color]="accent">
+        <span>{{title}}</span>
+    </md-toolbar>
+    <div class="card-container">
+        <md-card class="master-card">
+            <md-card-header>
+                <md-card-title>My Heroes</md-card-title>
+            </md-card-header>
+            <md-card-content>
+                <toh-hero-list
+                    [heroes]="heroes$ | async"
+                    [selectedHero]="selectedHero$ | async"
+                    (select)="onHeroListSelectChange($event)">
+                </toh-hero-list>
+            </md-card-content>
+        </md-card>
+        <md-card class="detail-card">
+            <toh-hero-detail
+                [hero]="selectedHero$ | async"
+                (change)="onHeroDetailsChange($event)">
+            </toh-hero-detail>
+        </md-card>
+    <div>
+    ```
+
+1. Update toh component styles. Copy/paste the following into ***toh.component.css*** in *app/*:
+
+    ```css
+    md-toolbar {
+        background-color: #03A9F4;
+        color: #FFFFFF;
+    }
+
+    .card-container {
+    display: flex;
+    flex-flow: row wrap;
+    }
+
+    .master-card {
+    width: 300px;
+    box-sizing: border-box;
+    }
+
+    .detail-card {
+    flex-grow: 1;
+    box-sizing: border-box;
+    }
+
+    .master-card md-card-title {
+        font-size: 2rem;
+    }
+    ```
+
+### Step 11. Update bootstrap
 
 1. Update bootstrap to provide store in ***main.ts***
 
@@ -854,7 +904,7 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     );
     ```
 
-### Step 11. Update ***system-config.ts*** in *app/* with all the app folders
+### Step 12. Update ***system-config.ts*** in *app/* with all the app folders
 
     ```
     /***********************************************************************************************
@@ -918,6 +968,7 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
         'app',
         'app/shared',
         'app/heroes',
+        'app/heroes/hero-list',
         'app/heroes/hero-detail',
         'app/heroes/shared',
         'app/heroes/reducers',
@@ -946,6 +997,6 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     System.config({ map, packages });
     ```
 
-### Step 12. Run App
+### Step 13. Run App
 
 1. Start the Visual Studio Debugger, press **F5**

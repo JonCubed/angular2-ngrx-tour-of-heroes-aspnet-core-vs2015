@@ -1,0 +1,14 @@
+<div *ngIf="heroes">
+    <md-list class="heroes">
+        <div *ngFor="let hero of heroes"
+            class="hero"
+            [class.selected]="hero === selectedHero"
+            (click)="onSelect(hero)">
+            <md-list-item>
+                <p md-line>
+                    <span class="badge">{{hero.id}}</span> {{hero.name}}
+                </p>
+            </md-list-item>
+        </div>
+    </md-list>
+</div>

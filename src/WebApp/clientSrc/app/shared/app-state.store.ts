@@ -1,6 +1,6 @@
 import {Hero} from '../heroes/shared/hero.model'
 
 export interface AppState {
-  heroes: Hero[];
+  heroes: Array<Hero>;
   selectedHero: Hero;
 }
