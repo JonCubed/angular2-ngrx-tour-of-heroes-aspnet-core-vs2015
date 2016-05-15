@@ -1,10 +1,2 @@
-export { 
-    HEROES_UPDATE_NAME
-    , HEROES_LOAD
-    , heroesReducer
-} from'./heroes.reducer'
-
-export { 
-    HEROES_SELECT
-    , selectHeroReducer
-} from'./select-hero.reducer'
+export { heroesReducer } from'./heroes.reducer'
+export { selectHeroReducer } from'./select-hero.reducer'

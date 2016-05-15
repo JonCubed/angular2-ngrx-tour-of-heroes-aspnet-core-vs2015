@@ -1,0 +1,3 @@
+export const HEROES_UPDATE_NAME = 'HEROES_UPDATE_NAME'
+export const HEROES_LOAD = 'HEROES_LOAD'
+export const HEROES_SELECT = 'HEROES_SELECT'

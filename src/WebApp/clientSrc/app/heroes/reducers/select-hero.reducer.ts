@@ -1,9 +1,8 @@
 import { Reducer, Action } from '@ngrx/store'
 
+import { HEROES_SELECT } from '../actions'
 import { Hero } from '../shared'
 import { AppState } from '../../shared'
-
-export const HEROES_SELECT = 'HEROES_SELECT'
 
 export const selectHeroReducer:Reducer<Hero> = (state:Hero, action: Action) => {
     
