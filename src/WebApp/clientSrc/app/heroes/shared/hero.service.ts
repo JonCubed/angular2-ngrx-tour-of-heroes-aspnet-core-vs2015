@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Rx';
 import {Store} from '@ngrx/store';
 
-import {HEROES_UPDATE_NAME, HEROES_SELECT, HEROES_LOAD } from '../reducers/';
+import {HEROES_UPDATE_NAME, HEROES_SELECT, HEROES_LOAD } from '../actions';
 import { HEROES } from './mock-heroes';
 import { Hero } from './hero.model';
 import { AppState } from '../../shared';

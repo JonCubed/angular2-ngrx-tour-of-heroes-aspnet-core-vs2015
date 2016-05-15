@@ -1,6 +1,6 @@
 import { Hero } from './hero.model';
 
-export var HEROES: Array<Hero> = [
+export var HEROES: Hero[] = [
     {"id": 11, "name": "Mr. Nice"},
     {"id": 12, "name": "Narco"},
     {"id": 13, "name": "Bombasto"},

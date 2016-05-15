@@ -30,7 +30,7 @@ import {
 export class TohAppComponent implements OnInit {
     title = 'Tour of Heroes';
     selectedHero$: Observable<Hero>;
-    heroes$: Observable<Array<Hero>>;
+    heroes$: Observable<Hero[]>;
 
     constructor(private heroService: HeroService, public store: Store<AppState>){
         this.heroes$ = this.heroService.heroes$;
