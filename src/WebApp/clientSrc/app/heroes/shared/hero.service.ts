@@ -9,10 +9,10 @@ import { AppState } from '../../shared';
 
 @Injectable()
 export class HeroService {
-  heroes$: Observable<Array<Hero>>;
+  heroes$: Observable<Hero[]>;
 
   constructor(public store: Store<AppState>) {
-    this.heroes$ = store.select<Array<Hero>>('heroes');
+    this.heroes$ = store.select<Hero[]>('heroes');
   }
 
   loadHeroes() {

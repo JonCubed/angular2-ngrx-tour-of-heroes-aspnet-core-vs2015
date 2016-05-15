@@ -1,6 +1,6 @@
-import {Hero} from '../heroes/shared/hero.model'
+import { Hero } from '../heroes'
 
 export interface AppState {
-  heroes: Array<Hero>;
+  heroes: Hero[];
   selectedHero: Hero;
 }

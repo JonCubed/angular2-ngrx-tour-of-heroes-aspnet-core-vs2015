@@ -5,7 +5,7 @@ import {
   iit,
   it
 } from '@angular/core/testing';
-import {Hero} from './hero.Model';
+import { Hero } from './hero.Model';
 
 describe('Hero', () => {
   it('should create an instance', () => {

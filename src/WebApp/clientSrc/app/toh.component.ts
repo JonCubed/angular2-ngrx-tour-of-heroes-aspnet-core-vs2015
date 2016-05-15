@@ -10,8 +10,7 @@ import {
     Hero,
     HeroService,
     HeroListComponent,
-    HeroDetailComponent,
-    HEROES_UPDATE_NAME
+    HeroDetailComponent
 } from './heroes/index';
 
 @Component({
