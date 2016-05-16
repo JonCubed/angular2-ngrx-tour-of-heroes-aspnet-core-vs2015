@@ -1,18 +1,18 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Rx';
-import {Store} from '@ngrx/store';
+import { Observable,   } from 'rxjs/observable';
+import { Store } from '@ngrx/store';
 
-import {HEROES_UPDATE_NAME, HEROES_SELECT, HEROES_LOAD } from '../actions';
+import { HEROES_UPDATE_NAME, HEROES_SELECT, HEROES_LOAD } from '../actions';
 import { HEROES } from './mock-heroes';
 import { Hero } from './hero.model';
-import { AppState } from '../../shared';
+import { AppState, Map } from '../../shared';
 
 @Injectable()
 export class HeroService {
-  heroes$: Observable<Hero[]>;
+  heroes$: Observable<Map<Hero>>;
 
   constructor(public store: Store<AppState>) {
-    this.heroes$ = store.select<Hero[]>('heroes');
+    this.heroes$=store.select<Map<Hero>>(s => s.entities.heroes);
   }
 
   loadHeroes() {
@@ -25,8 +25,8 @@ export class HeroService {
     this.store.dispatch({type:HEROES_UPDATE_NAME, payload:{id, name}})
   }
 
-  select(hero: Hero) {
-    this.store.dispatch({type:HEROES_SELECT, payload:hero})
+  select(heroId: number) {
+    this.store.dispatch({type:HEROES_SELECT, payload:heroId})
   }
 
 }

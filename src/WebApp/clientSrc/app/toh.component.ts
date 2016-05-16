@@ -2,10 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { MdToolbar } from '@angular2-material/toolbar';
 import { MD_CARD_DIRECTIVES } from '@angular2-material/card';
 import { MD_LIST_DIRECTIVES } from '@angular2-material/list';
-import { Observable } from 'rxjs/Observable';
 import { Store } from '@ngrx/store';
+import { Observable } from 'rxjs/observable';
+import 'rxjs/add/operator/combineLatest';
 
-import { AppState } from './index'
+import { AppState, Map } from './index'
 import {
     Hero,
     HeroService,
@@ -25,7 +26,7 @@ import {
     HeroListComponent,
     HeroDetailComponent
   ],
-  providers: [HeroService]
+  providers: [ HeroService ]
 })
 export class TohAppComponent implements OnInit {
     title = 'Tour of Heroes';
@@ -33,16 +34,32 @@ export class TohAppComponent implements OnInit {
     heroes$: Observable<Hero[]>;
 
     constructor(private heroService: HeroService, public store: Store<AppState>){
-        this.heroes$ = this.heroService.heroes$;
-        this.selectedHero$ = store.select<Hero>('selectHero');
+        let heroes$ = this.heroService
+                          .heroes$; 
+                           
+        this.heroes$ = heroes$.map((heroes)=> this.flattenMap<Hero>(heroes));
+                                                    
+        this.selectedHero$ = store.select<number>('selectHero')
+                                  .combineLatest(
+                                      heroes$, 
+                                      (id, heroes) => heroes[id]
+                                  );      
    }
 
+    private flattenMap<V>(map: Map<V>) : V[] {
+        let mapResult = [];
+            for (let key in map){
+                mapResult.push(map[key]);
+            }
+            return mapResult
+    }
+    
     ngOnInit() {
         this.heroService.loadHeroes();
     }
 
-    onHeroListSelectChange(hero: Hero) {
-        this.heroService.select(hero);
+    onHeroListSelectChange(heroId: number) {
+        this.heroService.select(heroId);
     }
 
     onHeroDetailsChange(event:{id:number, name:string}) {

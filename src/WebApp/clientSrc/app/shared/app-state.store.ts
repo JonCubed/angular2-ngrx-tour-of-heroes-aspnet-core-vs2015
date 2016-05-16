@@ -1,6 +1,9 @@
 import { Hero } from '../heroes'
+import { Map } from './map.model'
 
 export interface AppState {
-  heroes: Hero[];
-  selectedHero: Hero;
+  entities: {
+    heroes: Map<Hero>
+  },
+  selectedHero: number;
 }

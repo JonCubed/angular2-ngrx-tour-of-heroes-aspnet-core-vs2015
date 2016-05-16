@@ -2,7 +2,7 @@ import { bootstrap } from '@angular/platform-browser-dynamic';
 import { enableProdMode } from '@angular/core';
 import { provideStore } from '@ngrx/store';
 
-import { TohAppComponent, environment,heroesReducer,selectHeroReducer } from './app/';
+import { TohAppComponent, environment, selectHeroReducer, entitiesReducer } from './app/';
 
 if (environment.production) {
   enableProdMode();
@@ -10,5 +10,5 @@ if (environment.production) {
 
 bootstrap(
   TohAppComponent, 
-  [ provideStore({heroes: heroesReducer, selectHero:selectHeroReducer}, {heroes: []})]
+  [ provideStore({entities: entitiesReducer, selectHero:selectHeroReducer}, {entities: {heroes: []}}) ]
 );

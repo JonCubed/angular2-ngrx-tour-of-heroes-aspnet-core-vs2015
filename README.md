@@ -413,7 +413,23 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     }
     ```
 
-### Step 3. Create App Store
+### Step 3. Map Model
+
+1. Create a ***Map*** class in *app/shared* using the cli
+
+    ```powershell
+    > ng generate class shared/Map model
+    ```
+
+1. Copy/paste the following:
+
+    ```typescript
+    export interface Map<V> {
+        [key:string]: V;
+    }
+    ```
+
+### Step 4. Create App Store
 
 1. Create a *AppState* class to *app/shared*
 
@@ -424,15 +440,36 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 1. Change the AppState class to an interface. Copy/paste the following:
 
     ```typescript
-    import { Hero } from '../heroes/shared/hero.model'
+    import { Hero } from '../heroes'
+    import { Map } from './map.model'
 
     export interface AppState {
-        heroes: Array<Hero>;
-        selectedHero: Hero;
+    entities: {
+        heroes: Map<Hero>
+    },
+    selectedHero: number;
     }
     ```
 
-### Step 4. Create Reducers
+### Step 5. Create Actions
+
+1. Create a *actions* folder in *app/heroes/*
+
+1. Create a *Hero* class to *app/actions*
+
+    ```powershell
+    > ng generate class heroes/actions/hero actions
+    ```
+
+1. Change the *Hero* class to constants. Copy/paste the following:
+
+    ```typescript
+    export const HEROES_UPDATE_NAME = 'HEROES_UPDATE_NAME'
+    export const HEROES_LOAD = 'HEROES_LOAD'
+    export const HEROES_SELECT = 'HEROES_SELECT'
+    ```
+
+### Step 6. Create Reducers
 
 1. Create a *reducers* folder in *app/heroes/*
 
@@ -447,30 +484,52 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     ```typescript
     import { Reducer, Action } from '@ngrx/store'
 
+    import { HEROES_UPDATE_NAME, HEROES_LOAD } from '../actions'
     import { Hero } from '../shared'
-    import { AppState } from '../../shared'
+    import { Map } from '../../shared'
 
-    export const HEROES_UPDATE_NAME = 'HEROES_UPDATE_NAME'
-    export const HEROES_LOAD = 'HEROES_LOAD'
-
-    export const heroesReducer:Reducer<Array<Hero>> = (state:Array<Hero>, action: Action) => {
+    export const heroesReducer:Reducer<Map<Hero>> = (state:Map<Hero> ={}, action: Action) => {
 
         switch (action.type) {
             case HEROES_LOAD:
-                return action.payload;
+                let heroes:Map<Hero> = {};
+
+                // Normalise heroes
+                (<Hero[]>action.payload).forEach((hero)=> {
+                    heroes[hero.id] = hero;
+                });
+
+                return Object.assign({}, state, heroes);
 
             case HEROES_UPDATE_NAME:
-                return state.map(item => {
-                    if (item.id === action.payload.id) {
-                        return Object.assign({}, item, action.payload);
-                    }
+                let newState:Map<Hero> = {};
+                newState[action.payload.id] = Object.assign({}, state[action.payload.id], action.payload);
 
-                    return item;
-                });
+                return Object.assign({}, state, newState);
 
             default:
                 return state;
         }
+    }
+    ```
+
+1. Create a *Entities* class in *app/heroes/reducers*
+
+    ```powershell
+    > ng generate class heroes/reducers/Entities reducer
+    ```
+
+1. Change *Entities* class into a function. Copy/paste the following:
+
+    ```typescript
+    import { Reducer, Action } from '@ngrx/store'
+
+    import { Hero } from '../shared'
+    import { Map } from '../../shared'
+    import { heroesReducer } from './heroes.reducer'
+
+    export const entitiesReducer:Reducer<{heroes:Map<Hero>}> = (state = {heroes: {}}, action) => {
+        return Object.assign({}, state, { heroes: heroesReducer(state.heroes, action) });
     }
     ```
 
@@ -480,17 +539,14 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     > ng generate class heroes/reducers/SelectHero reducer
     ```
 
-1. Change SelectHero class into a function. Copy/paste the following:
+1. Change *SelectHero* class into a function. Copy/paste the following:
 
     ```typescript
     import { Reducer, Action } from '@ngrx/store'
 
-    import { Hero } from '../shared'
-    import { AppState } from '../../shared'
+    import { HEROES_SELECT } from '../actions'
 
-    export const HEROES_SELECT = 'HEROES_SELECT'
-
-    export const selectHeroReducer:Reducer<Hero> = (state:Hero, action: Action) => {
+    export const selectHeroReducer:Reducer<number> = (state:number = null, action: Action) => {
 
         switch (action.type) {
             case HEROES_SELECT:
@@ -502,7 +558,7 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     }
     ```
 
-### Step 5. Create Heroes Mock data
+### Step 7. Create Heroes Mock data
 
 1. Create a ***MockHero** class to *app/heroes/shared* using the angular cli
 
@@ -529,7 +585,7 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     ];
     ```
 
-### Step 6. Create Hero Service
+### Step 8. Create Hero Service
 
 1. Create a ***Hero** service to *app/heroes/shared/* using the angular cli
 
@@ -541,40 +597,40 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 
     ```typescript
     import { Injectable } from '@angular/core';
-    import { Observable } from 'rxjs/Rx';
-    import {Store} from '@ngrx/store';
+    import { Observable,   } from 'rxjs/observable';
+    import { Store } from '@ngrx/store';
 
-    import {HEROES_UPDATE_NAME, HEROES_SELECT, HEROES_LOAD } from '../reducers/';
+    import { HEROES_UPDATE_NAME, HEROES_SELECT, HEROES_LOAD } from '../actions';
     import { HEROES } from './mock-heroes';
     import { Hero } from './hero.model';
-    import { AppState } from '../../shared';
+    import { AppState, Map } from '../../shared';
 
     @Injectable()
     export class HeroService {
-        heroes$: Observable<Array<Hero>>;
+    heroes$: Observable<Map<Hero>>;
 
-        constructor(public store: Store<AppState>) {
-            this.heroes$ = store.select<Array<Hero>>('heroes');
-        }
+    constructor(public store: Store<AppState>) {
+        this.heroes$=store.select<Map<Hero>>(s => s.entities.heroes);
+    }
 
-        loadHeroes() {
-            let heroes = HEROES;
+    loadHeroes() {
+        let heroes = HEROES;
 
-            this.store.dispatch({type:HEROES_LOAD, payload:heroes})
-        }
+        this.store.dispatch({type:HEROES_LOAD, payload:heroes})
+    }
 
-        updateName(id: number, name:string) {
-            this.store.dispatch({type:HEROES_UPDATE_NAME, payload:{id, name}})
-        }
+    updateName(id: number, name:string) {
+        this.store.dispatch({type:HEROES_UPDATE_NAME, payload:{id, name}})
+    }
 
-        select(hero: Hero) {
-            this.store.dispatch({type:HEROES_SELECT, payload:hero})
-        }
+    select(heroId: number) {
+        this.store.dispatch({type:HEROES_SELECT, payload:heroId})
+    }
 
     }
     ```
 
-### Step 7. Hero List Component
+### Step 9. Hero List Component
 
 1. Add a ***HeroList** component to *app/heroes* using the angular cli
 
@@ -585,7 +641,13 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 1. Replace ***/hero-list.component.ts*** in *app/heroes/hero-list/* with the following:
 
     ```typescript
-    import { Component, Input, Output, EventEmitter } from '@angular/core';
+    import {
+        Component,
+        Input,
+        Output,
+        EventEmitter,
+        ChangeDetectionStrategy
+    } from '@angular/core';
 
     import { Hero } from '../shared';
 
@@ -593,18 +655,18 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
         moduleId: module.id,
         selector: 'toh-hero-list',
         templateUrl: 'hero-list.component.html',
-        styleUrls: ['hero-list.component.css']
+        styleUrls: ['hero-list.component.css'],
+        changeDetection: ChangeDetectionStrategy.OnPush
     })
     export class HeroListComponent {
 
-        @Input() heroes: Array<Hero>;
-        @Input() selectedHero: Hero;
-        @Output() select = new EventEmitter<Hero>(true);  
+        @Input() heroes: Hero[];
+        @Input() selectedHero: number;
+        @Output() select = new EventEmitter<number>(true);
 
-        onSelect(hero: Hero) {
-            this.select.emit(hero);
+        onSelect(heroId: number) {
+            this.select.emit(heroId);
         }
-
     }
     ```
 
@@ -615,8 +677,8 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
         <md-list class="heroes">
             <div *ngFor="let hero of heroes"
                 class="hero"
-                [class.selected]="hero === selectedHero"
-                (click)="onSelect(hero)">
+                [class.selected]="hero.id === selectedHero"
+                (click)="onSelect(hero.id)">
                 <md-list-item>
                     <p md-line>
                         <span class="badge">{{hero.id}}</span> {{hero.name}}
@@ -670,7 +732,7 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     }
     ```
 
-### Step 8. Hero Detail Component
+### Step 10. Hero Detail Component
 
 1. Add a ***HeroDetail** component to *app/heroes* using the angular cli
 
@@ -707,7 +769,6 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
         @Output() change = new EventEmitter(true);
 
         onNameChange(name:string) {
-            console.log(name);
             this.change.emit({id: this.hero.id, name});
         }
     }
@@ -725,7 +786,7 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     </div>
     ```
 
-### Step 9. Barrel files
+### Step 11. Barrel files
 
 > Hopefully in the future the angular cli will do this automatically
 
@@ -740,8 +801,15 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 1. Create a barrel file ***index.ts*** in *app/heroes/reducers*
 
     ```typescript
-    export { HEROES_UPDATE_NAME , HEROES_LOAD , heroesReducer } from'./heroes.reducer'
-    export { HEROES_SELECT, selectHero } from'./select-hero.reducer'
+    export { entitiesReducer } from'./entities.reducer'
+    export { heroesReducer } from'./heroes.reducer'
+    export { selectHeroReducer } from'./select-hero.reducer'
+    ```
+
+1. Create a barrel file ***index.ts*** in *app/heroes/actions*
+
+    ```typescript
+    export { HEROES_LOAD,HEROES_SELECT, HEROES_UPDATE_NAME } from './hero.Actions';
     ```
 
 1. Create a barrel file ***index.ts*** in *app/heroes/*. Copy/paste the following:
@@ -751,12 +819,14 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     export * from './hero-list';
     export * from './shared';
     export * from './reducers';
+    export * from './actions';
     ```
 
 1. Create a barrel file ***index.ts*** in *app/shared/*. Copy/paste the following:
 
     ```typescript
     export { AppState } from './app-state.store';
+    export { Map } from './map.model';
     ```
 
 1. Create a barrel file ***index.ts*** in *app/*. Copy/paste the following:
@@ -768,7 +838,7 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     export * from './shared';
     ```
 
-### Step 10. App Component
+### Step 12. App Component
 
 1. Copy/paste the following into ***toh.component.ts*** in *app/*
 
@@ -777,16 +847,16 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     import { MdToolbar } from '@angular2-material/toolbar';
     import { MD_CARD_DIRECTIVES } from '@angular2-material/card';
     import { MD_LIST_DIRECTIVES } from '@angular2-material/list';
-    import { Observable } from 'rxjs/Observable';
     import { Store } from '@ngrx/store';
+    import { Observable } from 'rxjs/observable';
+    import 'rxjs/add/operator/combineLatest';
 
-    import { AppState } from './index'
+    import { AppState, Map } from './index'
     import {
         Hero,
         HeroService,
         HeroListComponent,
-        HeroDetailComponent,
-        HEROES_UPDATE_NAME
+        HeroDetailComponent
     } from './heroes/index';
 
     @Component({
@@ -801,24 +871,40 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
         HeroListComponent,
         HeroDetailComponent
     ],
-    providers: [HeroService]
+    providers: [ HeroService ]
     })
     export class TohAppComponent implements OnInit {
         title = 'Tour of Heroes';
         selectedHero$: Observable<Hero>;
-        heroes$: Observable<Array<Hero>>;
+        heroes$: Observable<Hero[]>;
 
         constructor(private heroService: HeroService, public store: Store<AppState>){
-            this.heroes$ = this.heroService.heroes$;
-            this.selectedHero$ = store.select<Hero>('selectHero');
-    }
+            let heroes$ = this.heroService
+                            .heroes$;
+
+            this.heroes$ = heroes$.map((heroes)=> this.flattenMap<Hero>(heroes));
+
+            this.selectedHero$ = store.select<number>('selectHero')
+                                    .combineLatest(
+                                        heroes$,
+                                        (id, heroes) => heroes[id]
+                                    );
+        }
+
+        private flattenMap<V>(map: Map<V>) : V[] {
+            let mapResult = [];
+                for (let key in map){
+                    mapResult.push(map[key]);
+                }
+                return mapResult
+        }
 
         ngOnInit() {
             this.heroService.loadHeroes();
         }
 
-        onHeroListSelectChange(hero: Hero) {
-            this.heroService.select(hero);
+        onHeroListSelectChange(heroId: number) {
+            this.heroService.select(heroId);
         }
 
         onHeroDetailsChange(event:{id:number, name:string}) {
@@ -883,7 +969,7 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     }
     ```
 
-### Step 11. Update bootstrap
+### Step 13. Update bootstrap
 
 1. Update bootstrap to provide store in ***main.ts***
 
@@ -892,19 +978,19 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     import { enableProdMode } from '@angular/core';
     import { provideStore } from '@ngrx/store';
 
-    import { TohAppComponent, environment,heroesReducer,selectHeroReducer } from './app/';
+    import { TohAppComponent, environment, selectHeroReducer, entitiesReducer } from './app/';
 
     if (environment.production) {
-        enableProdMode();
+    enableProdMode();
     }
 
     bootstrap(
         TohAppComponent,
-        [ provideStore({heroes: heroesReducer, selectHero:selectHeroReducer}, {heroes: []})]
+        [ provideStore({entities: entitiesReducer, selectHero:selectHeroReducer}, {entities: {heroes: []}}) ]
     );
     ```
 
-### Step 12. Update ***system-config.ts*** in *app/* with all the app folders
+### Step 14. Update ***system-config.ts*** in *app/* with all the app folders
 
     ```
     /***********************************************************************************************
@@ -972,6 +1058,7 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
         'app/heroes/hero-detail',
         'app/heroes/shared',
         'app/heroes/reducers',
+        'app/heroes/actions',
         /** @cli-barrel */
     ];
 
@@ -997,6 +1084,6 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     System.config({ map, packages });
     ```
 
-### Step 13. Run App
+### Step 15. Run App
 
 1. Start the Visual Studio Debugger, press **F5**

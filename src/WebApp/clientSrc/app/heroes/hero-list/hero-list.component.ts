@@ -18,11 +18,10 @@ import { Hero } from '../shared';
 export class HeroListComponent {
 
   @Input() heroes: Hero[];
-  @Input() selectedHero: Hero;
-  @Output() select = new EventEmitter<Hero>(true);  
+  @Input() selectedHero: number;
+  @Output() select = new EventEmitter<number>(true);  
 
-  onSelect(hero: Hero) {
-    this.select.emit(hero);
+  onSelect(heroId: number) {
+    this.select.emit(heroId);
   }
-
 }
