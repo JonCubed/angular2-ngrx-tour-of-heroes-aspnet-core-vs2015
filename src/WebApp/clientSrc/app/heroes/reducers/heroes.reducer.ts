@@ -4,7 +4,9 @@ import { HEROES_UPDATE_NAME, HEROES_LOAD } from '../actions'
 import { Hero } from '../shared'
 import { Map } from '../../shared'
 
-export const heroesReducer:Reducer<Map<Hero>> = (state:Map<Hero> ={}, action: Action) => {
+export const HeroesInitialState:Map<Hero> = {}
+
+export const heroesReducer:Reducer<Map<Hero>> = (state:Map<Hero> = HeroesInitialState, action: Action) => {
 
     switch (action.type) {
         case HEROES_LOAD:

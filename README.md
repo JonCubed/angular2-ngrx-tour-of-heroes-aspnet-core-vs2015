@@ -440,7 +440,7 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 1. Change the AppState class to an interface. Copy/paste the following:
 
     ```typescript
-    import { Hero } from '../heroes'
+    import { Hero, EntitiesInitialState, selectHeroInitialState } from '../heroes'
     import { Map } from './map.model'
 
     export interface AppState {
@@ -448,6 +448,11 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
         heroes: Map<Hero>
     },
     selectedHero: number;
+    }
+
+    export const AppInitialState :AppState = {
+    entities: EntitiesInitialState,
+    selectedHero: selectHeroInitialState
     }
     ```
 
@@ -488,7 +493,9 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     import { Hero } from '../shared'
     import { Map } from '../../shared'
 
-    export const heroesReducer:Reducer<Map<Hero>> = (state:Map<Hero> ={}, action: Action) => {
+    export const HeroesInitialState:Map<Hero> = {}
+
+    export const heroesReducer:Reducer<Map<Hero>> = (state:Map<Hero> = HeroesInitialState, action: Action) => {
 
         switch (action.type) {
             case HEROES_LOAD:
@@ -526,9 +533,13 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 
     import { Hero } from '../shared'
     import { Map } from '../../shared'
-    import { heroesReducer } from './heroes.reducer'
+    import { heroesReducer, HeroesInitialState } from './heroes.reducer'
 
-    export const entitiesReducer:Reducer<{heroes:Map<Hero>}> = (state = {heroes: {}}, action) => {
+    export const EntitiesInitialState = {
+        heroes: HeroesInitialState
+    }
+
+    export const entitiesReducer:Reducer<{heroes:Map<Hero>}> = (state = EntitiesInitialState, action) => {
         return Object.assign({}, state, { heroes: heroesReducer(state.heroes, action) });
     }
     ```
@@ -546,7 +557,9 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 
     import { HEROES_SELECT } from '../actions'
 
-    export const selectHeroReducer:Reducer<number> = (state:number = null, action: Action) => {
+    export const selectHeroInitialState:number = null
+
+    export const selectHeroReducer:Reducer<number> = (state:number = selectHeroInitialState, action: Action) => {
 
         switch (action.type) {
             case HEROES_SELECT:
@@ -556,6 +569,20 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
                 return state;
         }
     }
+    ```
+
+1. Create a *AppState* class in *app/shared/*
+
+    ```powershell
+    > ng generate class shared/AppState reducer
+    ```
+
+1. Change *AppSate* class into an object literal. Copy/paste the following:
+
+    ```typescript
+    import { entitiesReducer, selectHeroReducer  } from '../'
+
+    export var AppStateReducer = { entities: entitiesReducer, selectHero:selectHeroReducer }
     ```
 
 ### Step 7. Create Heroes Mock data
@@ -801,9 +828,9 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 1. Create a barrel file ***index.ts*** in *app/heroes/reducers*
 
     ```typescript
-    export { entitiesReducer } from'./entities.reducer'
-    export { heroesReducer } from'./heroes.reducer'
-    export { selectHeroReducer } from'./select-hero.reducer'
+    export { entitiesReducer, EntitiesInitialState } from'./entities.reducer'
+    export { heroesReducer, HeroesInitialState } from'./heroes.reducer'
+    export { selectHeroReducer, selectHeroInitialState } from'./select-hero.reducer'
     ```
 
 1. Create a barrel file ***index.ts*** in *app/heroes/actions*
@@ -825,7 +852,8 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 1. Create a barrel file ***index.ts*** in *app/shared/*. Copy/paste the following:
 
     ```typescript
-    export { AppState } from './app-state.store';
+    export { AppState, AppInitialState } from './app-state.store';
+    export { AppStateReducer } from './app-state.reducer';
     export { Map } from './map.model';
     ```
 
@@ -835,7 +863,7 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     export {environment} from './environment';
     export {TohAppComponent} from './toh.component';
     export * from './heroes';
-    export * from './shared';
+    export {AppInitialState, AppState, AppStateReducer, Map} from './shared';
     ```
 
 ### Step 12. App Component
@@ -978,15 +1006,15 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     import { enableProdMode } from '@angular/core';
     import { provideStore } from '@ngrx/store';
 
-    import { TohAppComponent, environment, selectHeroReducer, entitiesReducer } from './app/';
+    import { TohAppComponent, environment, AppStateReducer, AppInitialState } from './app/';
 
     if (environment.production) {
-    enableProdMode();
+        enableProdMode();
     }
 
     bootstrap(
         TohAppComponent,
-        [ provideStore({entities: entitiesReducer, selectHero:selectHeroReducer}, {entities: {heroes: []}}) ]
+        [ provideStore(AppStateReducer, AppInitialState) ]
     );
     ```
 

@@ -2,7 +2,9 @@ import { Reducer, Action } from '@ngrx/store'
 
 import { HEROES_SELECT } from '../actions'
 
-export const selectHeroReducer:Reducer<number> = (state:number = null, action: Action) => {
+export const selectHeroInitialState:number = null
+
+export const selectHeroReducer:Reducer<number> = (state:number = selectHeroInitialState, action: Action) => {
 
     switch (action.type) {
         case HEROES_SELECT:
