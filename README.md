@@ -534,65 +534,29 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 
     import { Hero } from '../shared'
     import { Map } from '../../shared'
-    import { HEROES_UPDATE_NAME } from '../actions'
-    import { EntitiesHeroInitialState, entitiesHeroesReducer } from './entities-heroes.reducer'
 
     interface IEntitiesState {
         heroes: Map<Hero>
     }
 
     export const EntitiesInitialState:IEntitiesState = {
-        heroes: EntitiesHeroInitialState
+        heroes: {}
     }
 
     export const entitiesReducer:Reducer<IEntitiesState> = (state:IEntitiesState = EntitiesInitialState, action: Action) => {        
         // updates state.entities state when any payload has .entities on it
         if (action.payload && action.payload.entities) {
-            return Object.assign({}, state, action.payload.entities);
+            let payload:IEntitiesState = EntitiesInitialState;
+
+            // merge individual entities first
+            for(var entityType in action.payload.entities) {
+                payload[entityType] = Object.assign({}, state[entityType], action.payload.entities[entityType]);
+            }
+
+            return Object.assign({}, state, payload);
         }
 
-        switch(action.type) {
-
-            case HEROES_UPDATE_NAME:
-                return Object.assign({}, state, { heroes: entitiesHeroesReducer(state.heroes, action) });
-
-            default:
-                return state;
-        }
-    }
-    ```
-
-1. Create a *EntitiesHeroes* class in *app/heroes/reducers*
-
-    ```powershell
-    > ng generate class heroes/reducers/EntitiesHeroes reducer
-    ```
-
-1. Change *EntitiesHeroes* class into a function. Copy/paste the following:
-
-    ```typescript
-    import { Reducer, Action } from '@ngrx/store'
-
-    import { Hero } from '../shared'
-    import { Map } from '../../shared'
-    import { HEROES_UPDATE_NAME } from '../actions'
-
-    export const EntitiesHeroInitialState:Map<Hero> = {}
-
-    export const entitiesHeroesReducer:Reducer<Map<Hero>> = (state:Map<Hero> = EntitiesHeroInitialState, action:Action) => {
-
-        switch(action.type) {
-
-            case HEROES_UPDATE_NAME:
-                let newState:Map<Hero> = {};
-                newState[action.payload.id] = Object.assign({}, state[action.payload.id], action.payload);
-
-                return Object.assign({}, state, newState );
-
-            default:
-                return state;
-
-        }
+        return state;
     }
     ```
 
@@ -662,41 +626,51 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 
     @Injectable()
     export class HeroService {
-        heroes$: Observable<Map<Hero>>;
+    heroes$: Observable<Map<Hero>>;
 
-        constructor(public store: Store<AppState>) {
-            this.heroes$ = store.select(store => store.entities.heroes);
+    constructor(public store: Store<AppState>) {
+        this.heroes$ = store.select(store => store.entities.heroes);
+    }
+
+    loadHeroes() {
+        let heroes = HEROES;
+
+        let heroEntities:Map<Hero> = {};
+        let heroList:number[] = [];
+
+        // Normalise heroes into a hash map
+        heroes.forEach((hero)=> {
+            heroEntities[hero.id] = hero;
+            heroList.push(hero.id);
+        });
+
+        this.store.dispatch({
+        type:HEROES_LOAD, payload: {
+            entities: {
+            heroes: heroEntities
+            },
+            result: heroList
         }
+        });
+    }
 
-        loadHeroes() {
-            let heroes = HEROES;
+    updateName(id: number, name:string) {
+        let hero = {};
+        hero[id] = {id, name};
 
-            let heroEntities:Map<Hero> = {};
-            let heroList:number[] = [];
-
-            // Normalise heroes into a hash map
-            heroes.forEach((hero)=> {
-                heroEntities[hero.id] = hero;
-                heroList.push(hero.id);
-            });
-
-            this.store.dispatch({
-                type:HEROES_LOAD, payload: {
-                    entities: {
-                    heroes: heroEntities
-                    },
-                    result: heroList
+        this.store.dispatch({
+            type: HEROES_UPDATE_NAME,
+            payload: {
+                entities: {
+                    heroes: hero
                 }
-            });
-        }
+            }
+        });
+    }
 
-        updateName(id: number, name:string) {
-            this.store.dispatch({type:HEROES_UPDATE_NAME, payload:{id, name}})
-        }
-
-        select(heroId: number) {
-            this.store.dispatch({type:HEROES_SELECT, payload:heroId})
-        }
+    select(heroId: number) {
+        this.store.dispatch({type:HEROES_SELECT, payload:heroId});
+    }
 
     }
     ```
@@ -872,15 +846,14 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 1. Create a barrel file ***index.ts*** in *app/heroes/reducers*
 
     ```typescript
-    export { entitiesReducer, EntitiesInitialState } from'./entities.reducer'
-    export { heroesReducer, HeroesInitialState } from'./heroes.reducer'
-    export { selectHeroReducer, selectHeroInitialState } from'./select-hero.reducer'
+    export { entitiesReducer, EntitiesInitialState, } from './entities.reducer'
+    export { heroesReducer, HeroesInitialState } from './heroes.reducer''
     ```
 
 1. Create a barrel file ***index.ts*** in *app/heroes/actions*
 
     ```typescript
-    export { HEROES_LOAD,HEROES_SELECT, HEROES_UPDATE_NAME } from './hero.Actions';
+    export { HEROES_LOAD, HEROES_SELECT, HEROES_UPDATE_NAME } from './hero.Actions';
     ```
 
 1. Create a barrel file ***index.ts*** in *app/heroes/*. Copy/paste the following:
@@ -1052,7 +1025,7 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     ```typescript
     import { bootstrap } from '@angular/platform-browser-dynamic';
     import { enableProdMode } from '@angular/core';
-    import { provideStore, usePostMiddleware, Middleware } from '@ngrx/store';
+    import { provideStore } from '@ngrx/store';
 
     import { TohAppComponent, environment, AppStateReducer, AppInitialState } from './app/';
 

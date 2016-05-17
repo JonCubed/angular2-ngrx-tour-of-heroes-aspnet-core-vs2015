@@ -38,11 +38,21 @@ export class HeroService {
   }
 
   updateName(id: number, name:string) {
-    this.store.dispatch({type:HEROES_UPDATE_NAME, payload:{id, name}})
+    let hero = {};
+    hero[id] = {id, name};
+    
+    this.store.dispatch({
+      type:HEROES_UPDATE_NAME,
+      payload: {
+        entities: {
+          heroes: hero
+        }
+      }
+    });
   }
 
   select(heroId: number) {
-    this.store.dispatch({type:HEROES_SELECT, payload:heroId})
+    this.store.dispatch({type:HEROES_SELECT, payload:heroId});
   }
 
 }
