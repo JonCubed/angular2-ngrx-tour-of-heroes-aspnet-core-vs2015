@@ -5,7 +5,7 @@ import {
   iit,
   it
 } from '@angular/core/testing';
-import {selectHeroReducer} from './select-hero.reducer';
+import {entitiesHeroesReducer} from './entities-heroes.reducer';
 /*
 describe('SelectHero', () => {
   it('should create an instance', () => {

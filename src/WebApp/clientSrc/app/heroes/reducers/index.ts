@@ -1,3 +1,3 @@
-export { entitiesReducer, EntitiesInitialState } from'./entities.reducer'
-export { heroesReducer, HeroesInitialState } from'./heroes.reducer'
-export { selectHeroReducer, selectHeroInitialState } from'./select-hero.reducer'
+export { entitiesHeroesReducer, EntitiesHeroInitialState } from './entities-heroes.reducer'
+export { entitiesReducer, EntitiesInitialState, } from './entities.reducer'
+export { heroesReducer, HeroesInitialState } from './heroes.reducer'

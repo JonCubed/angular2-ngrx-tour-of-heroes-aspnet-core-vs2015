@@ -1,14 +1,17 @@
-import { Hero, EntitiesInitialState, selectHeroInitialState } from '../heroes'
+import { Hero, EntitiesInitialState, HeroesInitialState } from '../heroes'
 import { Map } from './map.model'
 
 export interface AppState {
   entities: {
     heroes: Map<Hero>
   },
-  selectedHero: number;
+  heroes: {
+    list: number[],
+    selected: number;
+  }
 }
 
-export const AppInitialState :AppState = {
+export const AppInitialState:AppState = {
   entities: EntitiesInitialState,
-  selectedHero: selectHeroInitialState
+  heroes: HeroesInitialState
 }

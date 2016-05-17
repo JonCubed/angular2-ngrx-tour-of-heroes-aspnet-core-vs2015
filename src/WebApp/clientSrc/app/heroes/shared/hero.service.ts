@@ -12,13 +12,29 @@ export class HeroService {
   heroes$: Observable<Map<Hero>>;
 
   constructor(public store: Store<AppState>) {
-    this.heroes$=store.select<Map<Hero>>(s => s.entities.heroes);
+    this.heroes$ = store.select(store => store.entities.heroes);
   }
 
   loadHeroes() {
     let heroes = HEROES;
+    
+    let heroEntities:Map<Hero> = {};
+    let heroList:number[] = [];
 
-    this.store.dispatch({type:HEROES_LOAD, payload:heroes})
+    // Normalise heroes into a hash map
+    heroes.forEach((hero)=> {
+        heroEntities[hero.id] = hero;
+        heroList.push(hero.id);        
+    });
+            
+    this.store.dispatch({
+      type:HEROES_LOAD, payload: { 
+        entities: { 
+          heroes: heroEntities
+        },
+        result: heroList
+      }
+    });
   }
 
   updateName(id: number, name:string) {

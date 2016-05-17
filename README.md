@@ -440,19 +440,22 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 1. Change the AppState class to an interface. Copy/paste the following:
 
     ```typescript
-    import { Hero, EntitiesInitialState, selectHeroInitialState } from '../heroes'
+    import { Hero, EntitiesInitialState, HeroesInitialState } from '../heroes'
     import { Map } from './map.model'
 
     export interface AppState {
-    entities: {
-        heroes: Map<Hero>
-    },
-    selectedHero: number;
+        entities: {
+            heroes: Map<Hero>
+        },
+        heroes: {
+            list: number[],
+            selected: number;
+        }
     }
 
-    export const AppInitialState :AppState = {
-    entities: EntitiesInitialState,
-    selectedHero: selectHeroInitialState
+    export const AppInitialState:AppState = {
+        entities: EntitiesInitialState,
+        heroes: HeroesInitialState
     }
     ```
 
@@ -489,30 +492,28 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     ```typescript
     import { Reducer, Action } from '@ngrx/store'
 
-    import { HEROES_UPDATE_NAME, HEROES_LOAD } from '../actions'
+    import { HEROES_LOAD, HEROES_SELECT } from '../actions'
     import { Hero } from '../shared'
     import { Map } from '../../shared'
 
-    export const HeroesInitialState:Map<Hero> = {}
+    interface IHeroesState {
+        list: number[];
+        selected: number;
+    }
 
-    export const heroesReducer:Reducer<Map<Hero>> = (state:Map<Hero> = HeroesInitialState, action: Action) => {
+    export const HeroesInitialState:IHeroesState = {
+        list: [],
+        selected: null
+    }
+
+    export const heroesReducer:Reducer<IHeroesState> = (state:IHeroesState = HeroesInitialState, action: Action) => {
 
         switch (action.type) {
             case HEROES_LOAD:
-                let heroes:Map<Hero> = {};
+                return Object.assign({}, state, { list: action.payload.result });
 
-                // Normalise heroes
-                (<Hero[]>action.payload).forEach((hero)=> {
-                    heroes[hero.id] = hero;
-                });
-
-                return Object.assign({}, state, heroes);
-
-            case HEROES_UPDATE_NAME:
-                let newState:Map<Hero> = {};
-                newState[action.payload.id] = Object.assign({}, state[action.payload.id], action.payload);
-
-                return Object.assign({}, state, newState);
+            case HEROES_SELECT:
+                return Object.assign({}, state, { selected: action.payload });
 
             default:
                 return state;
@@ -533,40 +534,64 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 
     import { Hero } from '../shared'
     import { Map } from '../../shared'
-    import { heroesReducer, HeroesInitialState } from './heroes.reducer'
+    import { HEROES_UPDATE_NAME } from '../actions'
+    import { EntitiesHeroInitialState, entitiesHeroesReducer } from './entities-heroes.reducer'
 
-    export const EntitiesInitialState = {
-        heroes: HeroesInitialState
+    interface IEntitiesState {
+        heroes: Map<Hero>
     }
 
-    export const entitiesReducer:Reducer<{heroes:Map<Hero>}> = (state = EntitiesInitialState, action) => {
-        return Object.assign({}, state, { heroes: heroesReducer(state.heroes, action) });
+    export const EntitiesInitialState:IEntitiesState = {
+        heroes: EntitiesHeroInitialState
+    }
+
+    export const entitiesReducer:Reducer<IEntitiesState> = (state:IEntitiesState = EntitiesInitialState, action: Action) => {        
+        // updates state.entities state when any payload has .entities on it
+        if (action.payload && action.payload.entities) {
+            return Object.assign({}, state, action.payload.entities);
+        }
+
+        switch(action.type) {
+
+            case HEROES_UPDATE_NAME:
+                return Object.assign({}, state, { heroes: entitiesHeroesReducer(state.heroes, action) });
+
+            default:
+                return state;
+        }
     }
     ```
 
-1. Create a *Heroes* class in *app/heroes/reducers*
+1. Create a *EntitiesHeroes* class in *app/heroes/reducers*
 
     ```powershell
-    > ng generate class heroes/reducers/SelectHero reducer
+    > ng generate class heroes/reducers/EntitiesHeroes reducer
     ```
 
-1. Change *SelectHero* class into a function. Copy/paste the following:
+1. Change *EntitiesHeroes* class into a function. Copy/paste the following:
 
     ```typescript
     import { Reducer, Action } from '@ngrx/store'
 
-    import { HEROES_SELECT } from '../actions'
+    import { Hero } from '../shared'
+    import { Map } from '../../shared'
+    import { HEROES_UPDATE_NAME } from '../actions'
 
-    export const selectHeroInitialState:number = null
+    export const EntitiesHeroInitialState:Map<Hero> = {}
 
-    export const selectHeroReducer:Reducer<number> = (state:number = selectHeroInitialState, action: Action) => {
+    export const entitiesHeroesReducer:Reducer<Map<Hero>> = (state:Map<Hero> = EntitiesHeroInitialState, action:Action) => {
 
-        switch (action.type) {
-            case HEROES_SELECT:
-                return action.payload;
+        switch(action.type) {
+
+            case HEROES_UPDATE_NAME:
+                let newState:Map<Hero> = {};
+                newState[action.payload.id] = Object.assign({}, state[action.payload.id], action.payload);
+
+                return Object.assign({}, state, newState );
 
             default:
                 return state;
+
         }
     }
     ```
@@ -580,9 +605,12 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 1. Change *AppSate* class into an object literal. Copy/paste the following:
 
     ```typescript
-    import { entitiesReducer, selectHeroReducer  } from '../'
+    import { entitiesReducer, heroesReducer } from '../'
 
-    export var AppStateReducer = { entities: entitiesReducer, selectHero:selectHeroReducer }
+    export var AppStateReducer = {
+        entities: entitiesReducer,
+        heroes: heroesReducer
+    };
     ```
 
 ### Step 7. Create Heroes Mock data
@@ -634,25 +662,41 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
 
     @Injectable()
     export class HeroService {
-    heroes$: Observable<Map<Hero>>;
+        heroes$: Observable<Map<Hero>>;
 
-    constructor(public store: Store<AppState>) {
-        this.heroes$=store.select<Map<Hero>>(s => s.entities.heroes);
-    }
+        constructor(public store: Store<AppState>) {
+            this.heroes$ = store.select(store => store.entities.heroes);
+        }
 
-    loadHeroes() {
-        let heroes = HEROES;
+        loadHeroes() {
+            let heroes = HEROES;
 
-        this.store.dispatch({type:HEROES_LOAD, payload:heroes})
-    }
+            let heroEntities:Map<Hero> = {};
+            let heroList:number[] = [];
 
-    updateName(id: number, name:string) {
-        this.store.dispatch({type:HEROES_UPDATE_NAME, payload:{id, name}})
-    }
+            // Normalise heroes into a hash map
+            heroes.forEach((hero)=> {
+                heroEntities[hero.id] = hero;
+                heroList.push(hero.id);
+            });
 
-    select(heroId: number) {
-        this.store.dispatch({type:HEROES_SELECT, payload:heroId})
-    }
+            this.store.dispatch({
+                type:HEROES_LOAD, payload: {
+                    entities: {
+                    heroes: heroEntities
+                    },
+                    result: heroList
+                }
+            });
+        }
+
+        updateName(id: number, name:string) {
+            this.store.dispatch({type:HEROES_UPDATE_NAME, payload:{id, name}})
+        }
+
+        select(heroId: number) {
+            this.store.dispatch({type:HEROES_SELECT, payload:heroId})
+        }
 
     }
     ```
@@ -888,18 +932,18 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     } from './heroes/index';
 
     @Component({
-    moduleId: module.id,
-    selector: 'toh-app',
-    templateUrl: 'toh.component.html',
-    styleUrls: ['toh.component.css'],
-    directives: [
-        MdToolbar,
-        MD_CARD_DIRECTIVES,
-        MD_LIST_DIRECTIVES,
-        HeroListComponent,
-        HeroDetailComponent
-    ],
-    providers: [ HeroService ]
+        moduleId: module.id,
+        selector: 'toh-app',
+        templateUrl: 'toh.component.html',
+        styleUrls: ['toh.component.css'],
+        directives: [
+            MdToolbar,
+            MD_CARD_DIRECTIVES,
+            MD_LIST_DIRECTIVES,
+            HeroListComponent,
+            HeroDetailComponent
+        ],
+        providers: [ HeroService ]
     })
     export class TohAppComponent implements OnInit {
         title = 'Tour of Heroes';
@@ -910,21 +954,25 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
             let heroes$ = this.heroService
                             .heroes$;
 
-            this.heroes$ = heroes$.map((heroes)=> this.flattenMap<Hero>(heroes));
+            // convert heroes map back into array
+            this.heroes$ = store.select(state => state.heroes.list)
+                                .combineLatest(
+                                    heroes$,
+                                    (heroList, heroEntities) => {
+                                        return heroList.reduce((arr, id) => {
+                                            arr.push(heroEntities[id]);
 
-            this.selectedHero$ = store.select<number>('selectHero')
+                                            return arr;
+                                        }, []);
+                                    }
+                                )
+
+            // get the selected hero
+            this.selectedHero$ = store.select<number>(state => state.heroes.selected)
                                     .combineLatest(
                                         heroes$,
                                         (id, heroes) => heroes[id]
                                     );
-        }
-
-        private flattenMap<V>(map: Map<V>) : V[] {
-            let mapResult = [];
-                for (let key in map){
-                    mapResult.push(map[key]);
-                }
-                return mapResult
         }
 
         ngOnInit() {
@@ -1004,7 +1052,7 @@ Have a look at the [Angular 2 Tour of Heroes Tutorial](https://angular.io/docs/t
     ```typescript
     import { bootstrap } from '@angular/platform-browser-dynamic';
     import { enableProdMode } from '@angular/core';
-    import { provideStore } from '@ngrx/store';
+    import { provideStore, usePostMiddleware, Middleware } from '@ngrx/store';
 
     import { TohAppComponent, environment, AppStateReducer, AppInitialState } from './app/';
 

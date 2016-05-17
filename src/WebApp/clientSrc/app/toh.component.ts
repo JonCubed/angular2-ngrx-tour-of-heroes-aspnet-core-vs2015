@@ -36,23 +36,27 @@ export class TohAppComponent implements OnInit {
     constructor(private heroService: HeroService, public store: Store<AppState>){
         let heroes$ = this.heroService
                           .heroes$; 
-                           
-        this.heroes$ = heroes$.map((heroes)=> this.flattenMap<Hero>(heroes));
-                                                    
-        this.selectedHero$ = store.select<number>('selectHero')
+
+        // convert heroes map back into array 
+        this.heroes$ = store.select(state => state.heroes.list)
+                            .combineLatest(
+                                heroes$,
+                                (heroList, heroEntities) => {                                  
+                                    return heroList.reduce((arr, id) => {
+                                        arr.push(heroEntities[id]);
+
+                                        return arr;
+                                    }, []);
+                                }
+                            )
+
+        // get the selected hero
+        this.selectedHero$ = store.select<number>(state => state.heroes.selected)
                                   .combineLatest(
                                       heroes$, 
                                       (id, heroes) => heroes[id]
                                   );      
    }
-
-    private flattenMap<V>(map: Map<V>) : V[] {
-        let mapResult = [];
-            for (let key in map){
-                mapResult.push(map[key]);
-            }
-            return mapResult
-    }
     
     ngOnInit() {
         this.heroService.loadHeroes();

@@ -1,3 +1,6 @@
-import { entitiesReducer, selectHeroReducer  } from '../'
+import { entitiesReducer, heroesReducer } from '../'
 
-export var AppStateReducer = { entities: entitiesReducer, selectHero:selectHeroReducer }
+export var AppStateReducer = { 
+    entities: entitiesReducer, 
+    heroes: heroesReducer 
+};
